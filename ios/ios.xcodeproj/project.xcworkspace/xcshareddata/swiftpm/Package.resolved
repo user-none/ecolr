@@ -1,0 +1,15 @@
+{
+  "originHash" : "de75bc6dce39a7deaaa3ef0c1ac81257b1da7dc56079190aa8c31160d46a470a",
+  "pins" : [
+    {
+      "identity" : "eblitui-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/user-none/eblitui-ios",
+      "state" : {
+        "revision" : "afce3cd8fb95a997b1349563a1687ef51e538638",
+        "version" : "0.3.0"
+      }
+    }
+  ],
+  "version" : 3
+}

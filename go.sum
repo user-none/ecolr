@@ -71,8 +71,8 @@ github.com/user-none/eblitui/rdb v0.1.0 h1:/ZIzlkTTUqGaFtMT8HNgiHouJ/SMpRv+uUVbx
 github.com/user-none/eblitui/rdb v0.1.0/go.mod h1:UyIx+HTKfiqL6246Qoe2vKvrhbJc73cBkRqpw6Db4AU=
 github.com/user-none/eblitui/romloader v0.2.0 h1:r97DR/7JMkA8TKeV4BsICc1KE85Otz1UaacOVOag3MM=
 github.com/user-none/eblitui/romloader v0.2.0/go.mod h1:klV9imkjiFof1IgsZTBATmwfVF900dMirQ6q8VysJIQ=
-github.com/user-none/eblitui/standalone v0.5.0 h1:dA8E2U4gLszVFmpxgzWRU9EFuM0GZHDdndMB+IxGxp8=
-github.com/user-none/eblitui/standalone v0.5.0/go.mod h1:jUAuwdNlzgKNrXrEnZlQWJiJyUeP/EqyP7gIqyCYNjU=
+github.com/user-none/eblitui/standalone v0.6.0 h1:zPORlEnKCICjF/0eV3h1ezILIY1cajtPU1lplDFSRHA=
+github.com/user-none/eblitui/standalone v0.6.0/go.mod h1:sW3mIT7EfSBlYAvVJttDYAs8FuizzZHZh8Uq4t4ut+8=
 github.com/user-none/go-chip-sn76489 v0.0.0-20260216111134-1da9b666b080 h1:wagV2NEnIG7QdFstzwNEsoLOJ71wcfqHV/r7a00y2Vw=
 github.com/user-none/go-chip-sn76489 v0.0.0-20260216111134-1da9b666b080/go.mod h1:WJdKIGKYMXS8F4eDTaHoG44+l5b1Bm5JDksdAPhDGf0=
 github.com/user-none/go-chip-z80 v0.0.0-20260215162438-a51e903d86a7 h1:4FyhT0bDXa4J49IX+z1YcqERo/LkHEQ4n4+zZaQwaNg=

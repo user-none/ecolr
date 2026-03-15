@@ -77,6 +77,8 @@ github.com/user-none/go-chip-sn76489 v0.0.0-20260216111134-1da9b666b080 h1:wagV2
 github.com/user-none/go-chip-sn76489 v0.0.0-20260216111134-1da9b666b080/go.mod h1:WJdKIGKYMXS8F4eDTaHoG44+l5b1Bm5JDksdAPhDGf0=
 github.com/user-none/go-chip-z80 v0.0.0-20260215162438-a51e903d86a7 h1:4FyhT0bDXa4J49IX+z1YcqERo/LkHEQ4n4+zZaQwaNg=
 github.com/user-none/go-chip-z80 v0.0.0-20260215162438-a51e903d86a7/go.mod h1:DEa23nvjxHzpDH3aAMDKa41UK860YiLUhLtscPc6Trs=
+github.com/user-none/go-chip-z80 v0.0.0-20260315161243-6c949bf925bb h1:yLswfTcs6c2y8yHhTkwFZw/KMe9ig23x1LD5tOhYmAA=
+github.com/user-none/go-chip-z80 v0.0.0-20260315161243-6c949bf925bb/go.mod h1:DEa23nvjxHzpDH3aAMDKa41UK860YiLUhLtscPc6Trs=
 github.com/user-none/go-rcheevos v0.0.0 h1:K256DmfvgirwkLAt/Y09HZ/WcZe2zr3BAyxjnbdbXFg=
 github.com/user-none/go-rcheevos v0.0.0/go.mod h1:MRIzBVxEdFPCdhxXvAvLHkyInXUzJCrb6v6mWI61A90=
 github.com/xyproto/randomstring v1.0.5 h1:YtlWPoRdgMu3NZtP45drfy1GKoojuR7hmRcnhZqKjWU=

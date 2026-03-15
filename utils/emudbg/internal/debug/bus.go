@@ -2,7 +2,6 @@ package debug
 
 import (
 	"github.com/user-none/ecolr/core"
-	"github.com/user-none/ecolr/core/tlcs900h"
 )
 
 // DebugBus wraps *core.Memory to intercept CPU reads with pin and mirror
@@ -44,24 +43,36 @@ func (d *DebugBus) Unmirror(addr uint32) {
 	delete(d.mirrors, addr)
 }
 
-// Read implements tlcs900h.Bus. It delegates to Memory.Read then overlays
-// pinned or mirrored bytes.
-func (d *DebugBus) Read(op tlcs900h.Size, addr uint32) uint32 {
-	val := d.Memory.Read(op, addr)
-	return d.overlay(op, addr, val)
-}
-
-// overlay replaces individual bytes in val that are pinned or mirrored.
-func (d *DebugBus) overlay(op tlcs900h.Size, addr uint32, val uint32) uint32 {
-	for i := tlcs900h.Size(0); i < op; i++ {
-		a := addr + uint32(i)
-		shift := i * 8
-		if pv, ok := d.pins[a]; ok {
-			val = (val &^ (0xFF << shift)) | (uint32(pv) << shift)
-		} else if src, ok := d.mirrors[a]; ok {
-			mv := d.Memory.Read(tlcs900h.Byte, src)
-			val = (val &^ (0xFF << shift)) | (mv << shift)
-		}
+// overlayByte returns the pinned, mirrored, or original value for a single byte.
+func (d *DebugBus) overlayByte(addr uint32, val uint8) uint8 {
+	if pv, ok := d.pins[addr]; ok {
+		return pv
+	}
+	if src, ok := d.mirrors[addr]; ok {
+		return d.Memory.Read8(src)
 	}
 	return val
+}
+
+// Read8 implements tlcs900h.Bus.
+func (d *DebugBus) Read8(addr uint32) uint8 {
+	return d.overlayByte(addr, d.Memory.Read8(addr))
+}
+
+// Read16 implements tlcs900h.Bus.
+func (d *DebugBus) Read16(addr uint32) uint16 {
+	val := d.Memory.Read16(addr)
+	lo := d.overlayByte(addr, uint8(val))
+	hi := d.overlayByte(addr+1, uint8(val>>8))
+	return uint16(lo) | uint16(hi)<<8
+}
+
+// Read32 implements tlcs900h.Bus.
+func (d *DebugBus) Read32(addr uint32) uint32 {
+	val := d.Memory.Read32(addr)
+	b0 := d.overlayByte(addr, uint8(val))
+	b1 := d.overlayByte(addr+1, uint8(val>>8))
+	b2 := d.overlayByte(addr+2, uint8(val>>16))
+	b3 := d.overlayByte(addr+3, uint8(val>>24))
+	return uint32(b0) | uint32(b1)<<8 | uint32(b2)<<16 | uint32(b3)<<24
 }

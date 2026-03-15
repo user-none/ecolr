@@ -45,7 +45,7 @@ type disasmReader struct {
 }
 
 func (r *disasmReader) readByte() uint8 {
-	val := uint8(r.bus.Read(Byte, r.pos&addrMask))
+	val := r.bus.Read8(r.pos & addrMask)
 	r.pos++
 	return val
 }
@@ -73,7 +73,7 @@ func (r *disasmReader) bytes() []byte {
 	n := r.pos - r.start
 	b := make([]byte, n)
 	for i := uint32(0); i < n; i++ {
-		b[i] = uint8(r.bus.Read(Byte, (r.start+i)&addrMask))
+		b[i] = r.bus.Read8((r.start + i) & addrMask)
 	}
 	return b
 }

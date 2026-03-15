@@ -1,9 +1,5 @@
 package core
 
-import (
-	"github.com/user-none/ecolr/core/tlcs900h"
-)
-
 // InitSystemState writes post-boot hardware state to SFR, K2GE, system RAM,
 // K1GE palettes, and GE mode. This represents the state after the real BIOS
 // completes boot and is shared by both HLE and real BIOS fast boot paths.
@@ -129,38 +125,38 @@ func (m *Memory) initSFR() {
 // initK2GE writes post-boot K2GE register values.
 // Values from memdump.bin at cart handoff point.
 func (m *Memory) initK2GE() {
-	m.Write(tlcs900h.Byte, 0x8000, 0xC0) // VBlank+HBlank IRQ enabled
-	m.Write(tlcs900h.Byte, 0x8006, 0xC6) // Frame rate control
-	m.Write(tlcs900h.Byte, 0x8118, 0x80) // Background color on
-	m.Write(tlcs900h.Byte, 0x8400, 0xFF) // LED on
-	m.Write(tlcs900h.Byte, 0x87F4, 0x80) // K2GE config
+	m.Write8(0x8000, 0xC0) // VBlank+HBlank IRQ enabled
+	m.Write8(0x8006, 0xC6) // Frame rate control
+	m.Write8(0x8118, 0x80) // Background color on
+	m.Write8(0x8400, 0xFF) // LED on
+	m.Write8(0x87F4, 0x80) // K2GE config
 
 	// Monochrome palette registers from memdump.bin.
 	// These represent a user choice from the BIOS setup screen.
-	m.Write(tlcs900h.Byte, 0x8101, 0x00) // Sprite palette 1
-	m.Write(tlcs900h.Byte, 0x8102, 0x04)
-	m.Write(tlcs900h.Byte, 0x8103, 0x07)
-	m.Write(tlcs900h.Byte, 0x8105, 0x07) // Sprite palette 2
-	m.Write(tlcs900h.Byte, 0x8106, 0x07)
-	m.Write(tlcs900h.Byte, 0x8107, 0x00)
-	m.Write(tlcs900h.Byte, 0x8109, 0x07) // Scroll 1 palette 1
-	m.Write(tlcs900h.Byte, 0x810A, 0x07)
-	m.Write(tlcs900h.Byte, 0x810B, 0x07)
-	m.Write(tlcs900h.Byte, 0x810D, 0x00) // Scroll 1 palette 2
-	m.Write(tlcs900h.Byte, 0x810E, 0x02)
-	m.Write(tlcs900h.Byte, 0x810F, 0x06)
-	m.Write(tlcs900h.Byte, 0x8111, 0x00) // Scroll 2 palette 1
-	m.Write(tlcs900h.Byte, 0x8112, 0x00)
-	m.Write(tlcs900h.Byte, 0x8113, 0x00)
-	m.Write(tlcs900h.Byte, 0x8115, 0x07) // Scroll 2 palette 2
-	m.Write(tlcs900h.Byte, 0x8116, 0x07)
-	m.Write(tlcs900h.Byte, 0x8117, 0x07)
+	m.Write8(0x8101, 0x00) // Sprite palette 1
+	m.Write8(0x8102, 0x04)
+	m.Write8(0x8103, 0x07)
+	m.Write8(0x8105, 0x07) // Sprite palette 2
+	m.Write8(0x8106, 0x07)
+	m.Write8(0x8107, 0x00)
+	m.Write8(0x8109, 0x07) // Scroll 1 palette 1
+	m.Write8(0x810A, 0x07)
+	m.Write8(0x810B, 0x07)
+	m.Write8(0x810D, 0x00) // Scroll 1 palette 2
+	m.Write8(0x810E, 0x02)
+	m.Write8(0x810F, 0x06)
+	m.Write8(0x8111, 0x00) // Scroll 2 palette 1
+	m.Write8(0x8112, 0x00)
+	m.Write8(0x8113, 0x00)
+	m.Write8(0x8115, 0x07) // Scroll 2 palette 2
+	m.Write8(0x8116, 0x07)
+	m.Write8(0x8117, 0x07)
 
 	// Sprite tables: $9000-$91FF and $9800-$99FF filled with $0020
 	// (64 sprite entries per table, 4 bytes each, $0020 = default tile)
 	for i := uint32(0); i < 0x200; i += 2 {
-		m.Write(tlcs900h.Word, 0x9000+i, 0x0020)
-		m.Write(tlcs900h.Word, 0x9800+i, 0x0020)
+		m.Write16(0x9000+i, 0x0020)
+		m.Write16(0x9800+i, 0x0020)
 	}
 }
 
@@ -173,65 +169,65 @@ func (m *Memory) initSystemRAM() {
 	if len(cart) > 0x2F {
 		// Entry point ($1C-$1F -> $6C00)
 		for i := 0; i < 4; i++ {
-			m.Write(tlcs900h.Byte, uint32(0x6C00+i), uint32(cart[0x1C+i]))
+			m.Write8(uint32(0x6C00+i), cart[0x1C+i])
 		}
 		// Software ID ($20-$21 -> $6C04, $6E82, $6C69)
-		m.Write(tlcs900h.Byte, 0x6C04, uint32(cart[0x20]))
-		m.Write(tlcs900h.Byte, 0x6C05, uint32(cart[0x21]))
-		m.Write(tlcs900h.Byte, 0x6E82, uint32(cart[0x20]))
-		m.Write(tlcs900h.Byte, 0x6E83, uint32(cart[0x21]))
-		m.Write(tlcs900h.Byte, 0x6C69, uint32(cart[0x20]))
-		m.Write(tlcs900h.Byte, 0x6C6A, uint32(cart[0x21]))
+		m.Write8(0x6C04, cart[0x20])
+		m.Write8(0x6C05, cart[0x21])
+		m.Write8(0x6E82, cart[0x20])
+		m.Write8(0x6E83, cart[0x21])
+		m.Write8(0x6C69, cart[0x20])
+		m.Write8(0x6C6A, cart[0x21])
 		// Sub-code ($22 -> $6C06, $6E84)
-		m.Write(tlcs900h.Byte, 0x6C06, uint32(cart[0x22]))
-		m.Write(tlcs900h.Byte, 0x6E84, uint32(cart[0x22]))
+		m.Write8(0x6C06, cart[0x22])
+		m.Write8(0x6E84, cart[0x22])
 		// System code ($23 -> $6F90, $6F91)
-		sysCode := uint32(cart[0x23])
-		m.Write(tlcs900h.Byte, 0x6F90, sysCode)
-		m.Write(tlcs900h.Byte, 0x6F91, sysCode)
+		sysCode := cart[0x23]
+		m.Write8(0x6F90, sysCode)
+		m.Write8(0x6F91, sysCode)
 		// Title ($24-$2F -> $6C08, $6C6C)
 		for i := 0; i < 12; i++ {
-			m.Write(tlcs900h.Byte, uint32(0x6C08+i), uint32(cart[0x24+i]))
-			m.Write(tlcs900h.Byte, uint32(0x6C6C+i), uint32(cart[0x24+i]))
+			m.Write8(uint32(0x6C08+i), cart[0x24+i])
+			m.Write8(uint32(0x6C6C+i), cart[0x24+i])
 		}
 	}
 
 	// Setup completion checksum. Default matches memdump ($DC).
 	// Recomputed by updateSetupChecksum when language or palette changes.
-	m.Write(tlcs900h.Byte, 0x6C14, 0xDC) // Checksum low
-	m.Write(tlcs900h.Byte, 0x6C15, 0x00) // Checksum high
-	m.Write(tlcs900h.Byte, 0x6C24, 0x0A) // INT0/AD priority config
-	m.Write(tlcs900h.Byte, 0x6C25, 0xDC) // Setup checksum input
+	m.Write8(0x6C14, 0xDC) // Checksum low
+	m.Write8(0x6C15, 0x00) // Checksum high
+	m.Write8(0x6C24, 0x0A) // INT0/AD priority config
+	m.Write8(0x6C25, 0xDC) // Setup checksum input
 
 	// A/D converter state
-	m.Write(tlcs900h.Word, 0x6C18, 0x01BC) // A/D conversion counter
-	m.Write(tlcs900h.Word, 0x6C1A, 0x0258) // A/D conversion interval
+	m.Write16(0x6C18, 0x01BC) // A/D conversion counter
+	m.Write16(0x6C1A, 0x0258) // A/D conversion interval
 
 	// Boot state flags
-	m.Write(tlcs900h.Byte, 0x6C21, 0x02) // Power button state
-	m.Write(tlcs900h.Byte, 0x6C46, 0x01) // Cart present
-	m.Write(tlcs900h.Byte, 0x6C55, 0x01) // Commercial game loaded
-	cs0Type := uint32(flashType(len(cart)))
-	m.Write(tlcs900h.Byte, 0x6C58, cs0Type)
-	m.Write(tlcs900h.Byte, 0x6F92, cs0Type)
+	m.Write8(0x6C21, 0x02) // Power button state
+	m.Write8(0x6C46, 0x01) // Cart present
+	m.Write8(0x6C55, 0x01) // Commercial game loaded
+	cs0Type := flashType(len(cart))
+	m.Write8(0x6C58, cs0Type)
+	m.Write8(0x6F92, cs0Type)
 
 	// CS1 present if cart > 2 MB
 	if len(cart) > 0x200000 {
-		cs1Type := uint32(flashType(len(cart) - 0x200000))
-		m.Write(tlcs900h.Byte, 0x6C59, cs1Type)
-		m.Write(tlcs900h.Byte, 0x6C7E, 0x01) // CS1 present flag
-		m.Write(tlcs900h.Byte, 0x6F93, cs1Type)
+		cs1Type := flashType(len(cart) - 0x200000)
+		m.Write8(0x6C59, cs1Type)
+		m.Write8(0x6C7E, 0x01) // CS1 present flag
+		m.Write8(0x6F93, cs1Type)
 	}
 
 	// Boot markers
-	m.Write(tlcs900h.Word, 0x6C7A, 0xA5A5)
-	m.Write(tlcs900h.Word, 0x6C7C, 0x5AA5)
+	m.Write16(0x6C7A, 0xA5A5)
+	m.Write16(0x6C7C, 0x5AA5)
 
 	// BIOS state
-	m.Write(tlcs900h.Byte, 0x6E85, 0x01)
-	m.Write(tlcs900h.Byte, 0x6E86, 0x22)
-	m.Write(tlcs900h.Byte, 0x6E87, 0x01)
-	m.Write(tlcs900h.Byte, 0x6E88, 0x01)
+	m.Write8(0x6E85, 0x01)
+	m.Write8(0x6E86, 0x22)
+	m.Write8(0x6E87, 0x01)
+	m.Write8(0x6E88, 0x01)
 
 	// Monochrome color scheme configuration
 	schemeConfig := []byte{
@@ -241,9 +237,9 @@ func (m *Memory) initSystemRAM() {
 		0x2E, 0x2E, 0x2E, 0x2A, 0x22, 0x01, 0x03, 0x01,
 	}
 	for i, b := range schemeConfig {
-		m.Write(tlcs900h.Byte, uint32(0x6D80+i), uint32(b))
+		m.Write8(uint32(0x6D80+i), b)
 	}
-	m.Write(tlcs900h.Byte, 0x6DA4, 0xFE)
+	m.Write8(0x6DA4, 0xFE)
 
 	// Color scheme indices and palette data
 	colorIndices := []byte{
@@ -252,7 +248,7 @@ func (m *Memory) initSystemRAM() {
 		0xFF, 0xFF,
 	}
 	for i, b := range colorIndices {
-		m.Write(tlcs900h.Byte, uint32(0x6DC6+i), uint32(b))
+		m.Write8(uint32(0x6DC6+i), b)
 	}
 
 	// Standard grayscale ramp palette (8 copies)
@@ -263,21 +259,21 @@ func (m *Memory) initSystemRAM() {
 	for i := 0; i < 8; i++ {
 		base := uint32(0x6DD8) + uint32(i)*16
 		for j, b := range palBlock {
-			m.Write(tlcs900h.Byte, base+uint32(j), uint32(b))
+			m.Write8(base+uint32(j), b)
 		}
 	}
 
 	// Z80 program area residual
-	m.Write(tlcs900h.Byte, 0x6F00, 0xCF)
-	m.Write(tlcs900h.Byte, 0x6F01, 0x07)
-	m.Write(tlcs900h.Byte, 0x6F02, 0x01)
-	m.Write(tlcs900h.Byte, 0x6F03, 0x01)
+	m.Write8(0x6F00, 0xCF)
+	m.Write8(0x6F01, 0x07)
+	m.Write8(0x6F02, 0x01)
+	m.Write8(0x6F03, 0x01)
 
 	// System state
-	m.Write(tlcs900h.Word, 0x6F80, 0x03FF) // Battery voltage (full)
-	m.Write(tlcs900h.Byte, 0x6F83, 0x40)   // Bit 6 set at cart handoff
-	m.Write(tlcs900h.Byte, 0x6F84, 0x40)   // User Boot = Power ON
-	m.Write(tlcs900h.Byte, 0x6F87, 0x01)   // Language = English
+	m.Write16(0x6F80, 0x03FF) // Battery voltage (full)
+	m.Write8(0x6F83, 0x40)    // Bit 6 set at cart handoff
+	m.Write8(0x6F84, 0x40)    // User Boot = Power ON
+	m.Write8(0x6F87, 0x01)    // Language = English
 }
 
 // flashType returns the flash chip type code for the given ROM size.
@@ -316,15 +312,15 @@ func (m *Memory) initK1GEPalettes() {
 
 // setGEMode configures K2GE mono/color mode from system code at $6F91.
 func (m *Memory) setGEMode() {
-	code := uint8(m.Read(tlcs900h.Byte, 0x6F91))
+	code := m.Read8(0x6F91)
 
-	m.Write(tlcs900h.Byte, 0x87F0, 0xAA)
+	m.Write8(0x87F0, 0xAA)
 	if code < 0x10 {
-		m.Write(tlcs900h.Byte, 0x87E2, 0x80)
-		m.Write(tlcs900h.Byte, 0x6F95, 0x00)
+		m.Write8(0x87E2, 0x80)
+		m.Write8(0x6F95, 0x00)
 	} else {
-		m.Write(tlcs900h.Byte, 0x87E2, 0x00)
-		m.Write(tlcs900h.Byte, 0x6F95, 0x10)
+		m.Write8(0x87E2, 0x00)
+		m.Write8(0x6F95, 0x10)
 	}
-	m.Write(tlcs900h.Byte, 0x87F0, 0x55)
+	m.Write8(0x87F0, 0x55)
 }

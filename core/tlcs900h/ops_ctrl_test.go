@@ -243,13 +243,13 @@ func TestSWI0(t *testing.T) {
 	expectedXSP := origXSP - 6
 	checkReg32(t, "XSP", c.reg.XSP, expectedXSP)
 
-	storedSR := uint16(bus.Read(Word, expectedXSP))
+	storedSR := bus.Read16(expectedXSP)
 	if storedSR != origSR {
 		t.Errorf("stored SR = 0x%04X, want 0x%04X", storedSR, origSR)
 	}
 
 	// PC stored should be pc+1 (after fetching the opcode byte)
-	storedPC := bus.Read(Long, expectedXSP+2)
+	storedPC := bus.Read32(expectedXSP + 2)
 	if storedPC != pc+1 {
 		t.Errorf("stored PC = 0x%06X, want 0x%06X", storedPC, pc+1)
 	}
@@ -290,8 +290,8 @@ func TestSWIStackLayout(t *testing.T) {
 	xsp := origXSP - 6
 
 	// Verify layout: SR(word) at XSP, PC(long) at XSP+2
-	gotSR := uint16(bus.Read(Word, xsp))
-	gotPC := bus.Read(Long, xsp+2)
+	gotSR := bus.Read16(xsp)
+	gotPC := bus.Read32(xsp + 2)
 
 	if gotSR != origSR {
 		t.Errorf("SR on stack = 0x%04X, want 0x%04X", gotSR, origSR)

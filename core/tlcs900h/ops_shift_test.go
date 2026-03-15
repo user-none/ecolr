@@ -42,7 +42,7 @@ func TestRLC_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x81)
 	cycles := c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x03 {
 		t.Errorf("RLC (mem) = 0x%02X, want 0x03", got)
 	}
@@ -68,7 +68,7 @@ func TestRRC_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x01) // 0000_0001
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	// Rotate right 1: 0x01 -> 0x80, C=1
 	if got != 0x80 {
 		t.Errorf("RRC (mem) = 0x%02X, want 0x80", got)
@@ -104,7 +104,7 @@ func TestRL_Mem(t *testing.T) {
 	bus.write8(0x2000, 0x55) // 0101_0101
 	c.setFlags(flagC)        // C=1
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	// RL: C(1)->LSB, MSB(0)->C, result = 1010_1011 = 0xAB, C=0
 	if got != 0xAB {
 		t.Errorf("RL (mem) = 0x%02X, want 0xAB", got)
@@ -140,7 +140,7 @@ func TestRR_Mem(t *testing.T) {
 	bus.write8(0x2000, 0xAA) // 1010_1010
 	c.setFlags(flagC)        // C=1
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	// RR: C(1)->MSB, LSB(0)->C, result = 1101_0101 = 0xD5, C=0
 	if got != 0xD5 {
 		t.Errorf("RR (mem) = 0x%02X, want 0xD5", got)
@@ -173,7 +173,7 @@ func TestSLA_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x55) // 0101_0101
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	// SLA: 0x55 << 1 = 0xAA, C=0
 	if got != 0xAA {
 		t.Errorf("SLA (mem) = 0x%02X, want 0xAA", got)
@@ -207,7 +207,7 @@ func TestSRA_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x80) // 1000_0000
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	// SRA: 1000_0000 >> 1 = 1100_0000 = 0xC0, C=0
 	if got != 0xC0 {
 		t.Errorf("SRA (mem) = 0x%02X, want 0xC0", got)
@@ -231,7 +231,7 @@ func TestSLL_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x55)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0xAA {
 		t.Errorf("SLL (mem) = 0x%02X, want 0xAA", got)
 	}
@@ -254,7 +254,7 @@ func TestSRL_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x01)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	// SRL: 0x01 >> 1 = 0x00, C=1
 	if got != 0x00 {
 		t.Errorf("SRL (mem) = 0x%02X, want 0x00", got)
@@ -293,7 +293,7 @@ func TestRLD(t *testing.T) {
 	// RLD: A[3:0] <- mem[7:4]=3, mem[7:4] <- mem[3:0]=4, mem[3:0] <- old A[3:0]=2
 	// A = 0x13, mem = 0x42
 	checkReg8(t, "A", c.reg.ReadReg8(r8From3bit[1]), 0x13)
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x42 {
 		t.Errorf("RLD mem = 0x%02X, want 0x42", got)
 	}
@@ -343,7 +343,7 @@ func TestRRD(t *testing.T) {
 	// RRD: A[3:0] <- mem[3:0]=4, mem[3:0] <- mem[7:4]=3, mem[7:4] <- old A[3:0]=2
 	// A = 0x14, mem = 0x23
 	checkReg8(t, "A", c.reg.ReadReg8(r8From3bit[1]), 0x14)
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x23 {
 		t.Errorf("RRD mem = 0x%02X, want 0x23", got)
 	}
@@ -444,7 +444,7 @@ func TestPOP_Mem_Word_StillWorks(t *testing.T) {
 	bus.write8(0x1001, 0x06) // POP<W>(mem)
 	c.reg.WriteReg32(0, 0x2000)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0xCAFE {
 		t.Errorf("POP<W>(mem) after wrap = 0x%04X, want 0xCAFE", got)
 	}

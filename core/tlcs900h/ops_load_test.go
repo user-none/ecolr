@@ -11,12 +11,12 @@ func TestPUSH_POP_SR(t *testing.T) {
 	origSR := c.reg.SR
 
 	// PUSH SR (opcode 0x02)
-	c.bus.Write(Byte, 0x1000, 0x02)
+	c.bus.Write8(0x1000, 0x02)
 	c.Step()
 
 	// POP SR (opcode 0x03) into different SR
 	c.setSR(0x0800) // clear everything except MAX
-	c.bus.Write(Byte, c.reg.PC, 0x03)
+	c.bus.Write8(c.reg.PC, 0x03)
 	c.Step()
 
 	if c.reg.SR != origSR {
@@ -26,7 +26,7 @@ func TestPUSH_POP_SR(t *testing.T) {
 
 func TestPUSH_SR_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x02)
+	c.bus.Write8(0x1000, 0x02)
 	cycles := c.Step()
 	if cycles != 3 {
 		t.Errorf("PUSH SR cycles = %d, want 3", cycles)
@@ -37,7 +37,7 @@ func TestPOP_SR_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	// Push something first
 	c.push(Word, uint32(c.reg.SR))
-	c.bus.Write(Byte, 0x1000, 0x03)
+	c.bus.Write8(0x1000, 0x03)
 	cycles := c.Step()
 	if cycles != 4 {
 		t.Errorf("POP SR cycles = %d, want 4", cycles)
@@ -49,14 +49,14 @@ func TestPUSH_POP_A(t *testing.T) {
 	c.reg.WriteReg8(r8From3bit[1], 0xAB) // A = 0xAB
 
 	// PUSH A (0x14)
-	c.bus.Write(Byte, 0x1000, 0x14)
+	c.bus.Write8(0x1000, 0x14)
 	c.Step()
 
 	// Clear A
 	c.reg.WriteReg8(r8From3bit[1], 0x00)
 
 	// POP A (0x15)
-	c.bus.Write(Byte, c.reg.PC, 0x15)
+	c.bus.Write8(c.reg.PC, 0x15)
 	c.Step()
 
 	checkReg8(t, "A", c.reg.ReadReg8(r8From3bit[1]), 0xAB)
@@ -64,7 +64,7 @@ func TestPUSH_POP_A(t *testing.T) {
 
 func TestPUSH_A_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x14)
+	c.bus.Write8(0x1000, 0x14)
 	cycles := c.Step()
 	if cycles != 3 {
 		t.Errorf("PUSH A cycles = %d, want 3", cycles)
@@ -74,7 +74,7 @@ func TestPUSH_A_Cycles(t *testing.T) {
 func TestPOP_A_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	c.push(Byte, 0x42)
-	c.bus.Write(Byte, 0x1000, 0x15)
+	c.bus.Write8(0x1000, 0x15)
 	cycles := c.Step()
 	if cycles != 4 {
 		t.Errorf("POP A cycles = %d, want 4", cycles)
@@ -86,14 +86,14 @@ func TestPUSH_POP_F(t *testing.T) {
 	c.setFlags(0xC5) // S=1,Z=1,V=1,C=1
 
 	// PUSH F (0x18)
-	c.bus.Write(Byte, 0x1000, 0x18)
+	c.bus.Write8(0x1000, 0x18)
 	c.Step()
 
 	// Clear flags
 	c.setFlags(0x00)
 
 	// POP F (0x19)
-	c.bus.Write(Byte, c.reg.PC, 0x19)
+	c.bus.Write8(c.reg.PC, 0x19)
 	c.Step()
 
 	if c.flags() != 0xC5 {
@@ -103,7 +103,7 @@ func TestPUSH_POP_F(t *testing.T) {
 
 func TestPUSH_F_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x18)
+	c.bus.Write8(0x1000, 0x18)
 	cycles := c.Step()
 	if cycles != 3 {
 		t.Errorf("PUSH F cycles = %d, want 3", cycles)
@@ -113,7 +113,7 @@ func TestPUSH_F_Cycles(t *testing.T) {
 func TestPOP_F_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	c.push(Byte, 0x00)
-	c.bus.Write(Byte, 0x1000, 0x19)
+	c.bus.Write8(0x1000, 0x19)
 	cycles := c.Step()
 	if cycles != 4 {
 		t.Errorf("POP F cycles = %d, want 4", cycles)
@@ -126,7 +126,7 @@ func TestEX_FF(t *testing.T) {
 	c.reg.FP = 0x12  // F' = 0x12
 
 	// EX F,F' (0x16)
-	c.bus.Write(Byte, 0x1000, 0x16)
+	c.bus.Write8(0x1000, 0x16)
 	c.Step()
 
 	if c.flags() != 0x12 {
@@ -139,7 +139,7 @@ func TestEX_FF(t *testing.T) {
 
 func TestEX_FF_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x16)
+	c.bus.Write8(0x1000, 0x16)
 	cycles := c.Step()
 	if cycles != 2 {
 		t.Errorf("EX F,F' cycles = %d, want 2", cycles)
@@ -150,7 +150,7 @@ func TestINCF(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	// Set RFP to 0
 	c.reg.SR = (c.reg.SR &^ srRFPMask) | (0 << srRFPShift)
-	c.bus.Write(Byte, 0x1000, 0x0C)
+	c.bus.Write8(0x1000, 0x0C)
 	c.Step()
 	rfp := int((c.reg.SR & srRFPMask) >> srRFPShift)
 	if rfp != 1 {
@@ -161,7 +161,7 @@ func TestINCF(t *testing.T) {
 func TestINCF_Wrap(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	c.reg.SR = (c.reg.SR &^ srRFPMask) | (3 << srRFPShift)
-	c.bus.Write(Byte, 0x1000, 0x0C)
+	c.bus.Write8(0x1000, 0x0C)
 	c.Step()
 	rfp := int((c.reg.SR & srRFPMask) >> srRFPShift)
 	if rfp != 0 {
@@ -177,7 +177,7 @@ func TestINCF_BankSwitch(t *testing.T) {
 	c.reg.Bank[1].XWA = 0x2222
 
 	// INCF switches to bank 1
-	c.bus.Write(Byte, 0x1000, 0x0C)
+	c.bus.Write8(0x1000, 0x0C)
 	c.Step()
 
 	// Now reading XWA should give bank 1's value
@@ -189,7 +189,7 @@ func TestINCF_BankSwitch(t *testing.T) {
 
 func TestINCF_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x0C)
+	c.bus.Write8(0x1000, 0x0C)
 	cycles := c.Step()
 	if cycles != 2 {
 		t.Errorf("INCF cycles = %d, want 2", cycles)
@@ -199,7 +199,7 @@ func TestINCF_Cycles(t *testing.T) {
 func TestDECF(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	c.reg.SR = (c.reg.SR &^ srRFPMask) | (2 << srRFPShift)
-	c.bus.Write(Byte, 0x1000, 0x0D)
+	c.bus.Write8(0x1000, 0x0D)
 	c.Step()
 	rfp := int((c.reg.SR & srRFPMask) >> srRFPShift)
 	if rfp != 1 {
@@ -210,7 +210,7 @@ func TestDECF(t *testing.T) {
 func TestDECF_Wrap(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	c.reg.SR = (c.reg.SR &^ srRFPMask) | (0 << srRFPShift)
-	c.bus.Write(Byte, 0x1000, 0x0D)
+	c.bus.Write8(0x1000, 0x0D)
 	c.Step()
 	rfp := int((c.reg.SR & srRFPMask) >> srRFPShift)
 	if rfp != 3 {
@@ -220,7 +220,7 @@ func TestDECF_Wrap(t *testing.T) {
 
 func TestDECF_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x0D)
+	c.bus.Write8(0x1000, 0x0D)
 	cycles := c.Step()
 	if cycles != 2 {
 		t.Errorf("DECF cycles = %d, want 2", cycles)
@@ -229,8 +229,8 @@ func TestDECF_Cycles(t *testing.T) {
 
 func TestLDF(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x17)
-	c.bus.Write(Byte, 0x1001, 0x02) // set RFP to 2
+	c.bus.Write8(0x1000, 0x17)
+	c.bus.Write8(0x1001, 0x02) // set RFP to 2
 	c.Step()
 	rfp := int((c.reg.SR & srRFPMask) >> srRFPShift)
 	if rfp != 2 {
@@ -240,8 +240,8 @@ func TestLDF(t *testing.T) {
 
 func TestLDF_MasksTo2Bits(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x17)
-	c.bus.Write(Byte, 0x1001, 0xFF) // only low 2 bits used = 3
+	c.bus.Write8(0x1000, 0x17)
+	c.bus.Write8(0x1001, 0xFF) // only low 2 bits used = 3
 	c.Step()
 	rfp := int((c.reg.SR & srRFPMask) >> srRFPShift)
 	if rfp != 3 {
@@ -251,8 +251,8 @@ func TestLDF_MasksTo2Bits(t *testing.T) {
 
 func TestLDF_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x17)
-	c.bus.Write(Byte, 0x1001, 0x00)
+	c.bus.Write8(0x1000, 0x17)
+	c.bus.Write8(0x1001, 0x00)
 	cycles := c.Step()
 	if cycles != 2 {
 		t.Errorf("LDF cycles = %d, want 2", cycles)
@@ -264,8 +264,8 @@ func TestLDF_Cycles(t *testing.T) {
 func TestLD_R_Imm_Byte(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	// LD R1,# byte: opcode 0x21, imm8
-	c.bus.Write(Byte, 0x1000, 0x21)
-	c.bus.Write(Byte, 0x1001, 0xAB)
+	c.bus.Write8(0x1000, 0x21)
+	c.bus.Write8(0x1001, 0xAB)
 	c.Step()
 	// R1 in byte = A (r8From3bit[1] = 0x00)
 	checkReg8(t, "A", c.reg.ReadReg8(r8From3bit[1]), 0xAB)
@@ -273,8 +273,8 @@ func TestLD_R_Imm_Byte(t *testing.T) {
 
 func TestLD_R_Imm_Byte_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x20)
-	c.bus.Write(Byte, 0x1001, 0x00)
+	c.bus.Write8(0x1000, 0x20)
+	c.bus.Write8(0x1001, 0x00)
 	cycles := c.Step()
 	if cycles != 2 {
 		t.Errorf("LD R,# byte cycles = %d, want 2", cycles)
@@ -284,16 +284,16 @@ func TestLD_R_Imm_Byte_Cycles(t *testing.T) {
 func TestLD_RR_Imm_Word(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	// LD RR0,## word: opcode 0x30, imm16
-	c.bus.Write(Byte, 0x1000, 0x30)
-	c.bus.Write(Word, 0x1001, 0x1234)
+	c.bus.Write8(0x1000, 0x30)
+	c.bus.Write16(0x1001, 0x1234)
 	c.Step()
 	checkReg16(t, "WA", c.reg.ReadReg16(0), 0x1234)
 }
 
 func TestLD_RR_Imm_Word_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x30)
-	c.bus.Write(Word, 0x1001, 0x0000)
+	c.bus.Write8(0x1000, 0x30)
+	c.bus.Write16(0x1001, 0x0000)
 	cycles := c.Step()
 	if cycles != 3 {
 		t.Errorf("LD RR,## word cycles = %d, want 3", cycles)
@@ -303,16 +303,16 @@ func TestLD_RR_Imm_Word_Cycles(t *testing.T) {
 func TestLD_XRR_Imm_Long(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	// LD XRR1,#### long: opcode 0x41, imm32
-	c.bus.Write(Byte, 0x1000, 0x41)
-	c.bus.Write(Long, 0x1001, 0xDEADBEEF)
+	c.bus.Write8(0x1000, 0x41)
+	c.bus.Write32(0x1001, 0xDEADBEEF)
 	c.Step()
 	checkReg32(t, "XBC", c.reg.ReadReg32(1), 0xDEADBEEF)
 }
 
 func TestLD_XRR_Imm_Long_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x40)
-	c.bus.Write(Long, 0x1001, 0x00000000)
+	c.bus.Write8(0x1000, 0x40)
+	c.bus.Write32(0x1001, 0x00000000)
 	cycles := c.Step()
 	if cycles != 5 {
 		t.Errorf("LD XRR,#### long cycles = %d, want 5", cycles)
@@ -324,13 +324,13 @@ func TestPUSH_POP_RR_Word(t *testing.T) {
 	c.reg.WriteReg16(1, 0xBEEF) // BC
 
 	// PUSH RR1 (0x29)
-	c.bus.Write(Byte, 0x1000, 0x29)
+	c.bus.Write8(0x1000, 0x29)
 	c.Step()
 
 	c.reg.WriteReg16(1, 0x0000) // clear BC
 
 	// POP RR1 (0x49)
-	c.bus.Write(Byte, c.reg.PC, 0x49)
+	c.bus.Write8(c.reg.PC, 0x49)
 	c.Step()
 
 	checkReg16(t, "BC", c.reg.ReadReg16(1), 0xBEEF)
@@ -338,7 +338,7 @@ func TestPUSH_POP_RR_Word(t *testing.T) {
 
 func TestPUSH_RR_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x28)
+	c.bus.Write8(0x1000, 0x28)
 	cycles := c.Step()
 	if cycles != 3 {
 		t.Errorf("PUSH RR cycles = %d, want 3", cycles)
@@ -348,7 +348,7 @@ func TestPUSH_RR_Cycles(t *testing.T) {
 func TestPOP_RR_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	c.push(Word, 0x1234)
-	c.bus.Write(Byte, 0x1000, 0x48)
+	c.bus.Write8(0x1000, 0x48)
 	cycles := c.Step()
 	if cycles != 4 {
 		t.Errorf("POP RR cycles = %d, want 4", cycles)
@@ -360,13 +360,13 @@ func TestPUSH_POP_XRR_Long(t *testing.T) {
 	c.reg.WriteReg32(2, 0xCAFEBABE) // XDE
 
 	// PUSH XRR2 (0x3A)
-	c.bus.Write(Byte, 0x1000, 0x3A)
+	c.bus.Write8(0x1000, 0x3A)
 	c.Step()
 
 	c.reg.WriteReg32(2, 0x00000000)
 
 	// POP XRR2 (0x5A)
-	c.bus.Write(Byte, c.reg.PC, 0x5A)
+	c.bus.Write8(c.reg.PC, 0x5A)
 	c.Step()
 
 	checkReg32(t, "XDE", c.reg.ReadReg32(2), 0xCAFEBABE)
@@ -374,7 +374,7 @@ func TestPUSH_POP_XRR_Long(t *testing.T) {
 
 func TestPUSH_XRR_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
-	c.bus.Write(Byte, 0x1000, 0x38)
+	c.bus.Write8(0x1000, 0x38)
 	cycles := c.Step()
 	if cycles != 5 {
 		t.Errorf("PUSH XRR cycles = %d, want 5", cycles)
@@ -384,7 +384,7 @@ func TestPUSH_XRR_Cycles(t *testing.T) {
 func TestPOP_XRR_Cycles(t *testing.T) {
 	c, _ := newTestCPU(t, 0x1000)
 	c.push(Long, 0x12345678)
-	c.bus.Write(Byte, 0x1000, 0x58)
+	c.bus.Write8(0x1000, 0x58)
 	cycles := c.Step()
 	if cycles != 6 {
 		t.Errorf("POP XRR cycles = %d, want 6", cycles)
@@ -400,7 +400,7 @@ func TestLD_B_Imm8Addr(t *testing.T) {
 	bus.write8(0x1001, 0x50) // addr = 0x50
 	bus.write8(0x1002, 0xAA) // val = 0xAA
 	c.Step()
-	got := bus.Read(Byte, 0x50)
+	got := bus.Read8(0x50)
 	if got != 0xAA {
 		t.Errorf("LD<B>(#8),# = 0x%02X, want 0xAA", got)
 	}
@@ -426,7 +426,7 @@ func TestPUSH_B_Imm(t *testing.T) {
 	if c.reg.XSP != spBefore-1 {
 		t.Errorf("SP after PUSH<B># = 0x%04X, want 0x%04X", c.reg.XSP, spBefore-1)
 	}
-	got := bus.Read(Byte, c.reg.XSP)
+	got := bus.Read8(c.reg.XSP)
 	if got != 0x42 {
 		t.Errorf("pushed value = 0x%02X, want 0x42", got)
 	}
@@ -449,7 +449,7 @@ func TestLD_W_Imm8Addr(t *testing.T) {
 	bus.write8(0x1001, 0x50) // addr = 0x50
 	bus.write16LE(0x1002, 0x1234)
 	c.Step()
-	got := bus.Read(Word, 0x50)
+	got := bus.Read16(0x50)
 	if got != 0x1234 {
 		t.Errorf("LD<W>(#8),## = 0x%04X, want 0x1234", got)
 	}
@@ -475,7 +475,7 @@ func TestPUSH_W_Imm(t *testing.T) {
 	if c.reg.XSP != spBefore-2 {
 		t.Errorf("SP after PUSH<W>## = 0x%04X, want 0x%04X", c.reg.XSP, spBefore-2)
 	}
-	got := bus.Read(Word, c.reg.XSP)
+	got := bus.Read16(c.reg.XSP)
 	if got != 0xBEEF {
 		t.Errorf("pushed value = 0x%04X, want 0xBEEF", got)
 	}
@@ -768,8 +768,8 @@ func TestLINK_UNLK_RoundTrip(t *testing.T) {
 	// UNLK: SP = r, r = pop
 	// Set up for UNLK
 	pc2 := c.reg.PC
-	c.bus.Write(Byte, pc2, 0xE8)   // long prefix reg 0
-	c.bus.Write(Byte, pc2+1, 0x0D) // UNLK
+	c.bus.Write8(pc2, 0xE8)   // long prefix reg 0
+	c.bus.Write8(pc2+1, 0x0D) // UNLK
 	c.Step()
 
 	checkReg32(t, "XWA", c.reg.ReadReg32(0), 0x12345678)
@@ -812,7 +812,7 @@ func TestLD_R_Mem_Byte(t *testing.T) {
 func TestLD_R_Mem_Word(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x21) // word (R0) indirect
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x1234)
+	bus.Write16(0x2000, 0x1234)
 	c.Step()
 	checkReg16(t, "BC", c.reg.ReadReg16(1), 0x1234)
 }
@@ -820,7 +820,7 @@ func TestLD_R_Mem_Word(t *testing.T) {
 func TestLD_R_Mem_Long(t *testing.T) {
 	c, bus := setupMemOp(t, 0xA0, 0x21) // long (R0) indirect
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Long, 0x2000, 0xDEADBEEF)
+	bus.Write32(0x2000, 0xDEADBEEF)
 	c.Step()
 	checkReg32(t, "XBC", c.reg.ReadReg32(1), 0xDEADBEEF)
 }
@@ -838,7 +838,7 @@ func TestLD_R_Mem_Byte_Cycles(t *testing.T) {
 func TestLD_R_Mem_Long_Cycles(t *testing.T) {
 	c, bus := setupMemOp(t, 0xA0, 0x21)
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Long, 0x2000, 0)
+	bus.Write32(0x2000, 0)
 	cycles := c.Step()
 	if cycles != 6 {
 		t.Errorf("LD R,(mem) long cycles = %d, want 6", cycles)
@@ -891,7 +891,7 @@ func TestLD_Mem_R_Byte(t *testing.T) {
 	c.reg.WriteReg32(2, 0x2000)          // XDE = pointer
 	c.reg.WriteReg8(r8From3bit[1], 0xAB) // A (R1 byte)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0xAB {
 		t.Errorf("LD<B>(mem),R = 0x%02X, want 0xAB", got)
 	}
@@ -905,7 +905,7 @@ func TestLD_Mem_R_Word(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	c.reg.WriteReg16(1, 0xBEEF)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0xBEEF {
 		t.Errorf("LD<W>(mem),R = 0x%04X, want 0xBEEF", got)
 	}
@@ -919,7 +919,7 @@ func TestLD_Mem_R_Long(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	c.reg.WriteReg32(1, 0xCAFEBABE)
 	c.Step()
-	got := bus.Read(Long, 0x2000)
+	got := bus.Read32(0x2000)
 	if got != 0xCAFEBABE {
 		t.Errorf("LD<L>(mem),R = 0x%08X, want 0xCAFEBABE", got)
 	}
@@ -984,9 +984,9 @@ func TestWrapDstMem_INC_StillWorks(t *testing.T) {
 	// INC #3,(mem) via source prefix
 	c, bus := setupMemOp(t, 0x90, 0x62) // word (R0), INC 2
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x1000)
+	bus.Write16(0x2000, 0x1000)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0x1002 {
 		t.Errorf("INC (mem) = 0x%04X, want 0x1002", got)
 	}
@@ -1004,7 +1004,7 @@ func TestPUSH_Mem_Byte(t *testing.T) {
 	if c.reg.XSP != spBefore-1 {
 		t.Errorf("SP after PUSH = 0x%04X, want 0x%04X", c.reg.XSP, spBefore-1)
 	}
-	got := bus.Read(Byte, c.reg.XSP)
+	got := bus.Read8(c.reg.XSP)
 	if got != 0xAB {
 		t.Errorf("pushed value = 0x%02X, want 0xAB", got)
 	}
@@ -1013,13 +1013,13 @@ func TestPUSH_Mem_Byte(t *testing.T) {
 func TestPUSH_Mem_Word(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x04) // word (R0) indirect
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x1234)
+	bus.Write16(0x2000, 0x1234)
 	spBefore := c.reg.XSP
 	c.Step()
 	if c.reg.XSP != spBefore-2 {
 		t.Errorf("SP after PUSH = 0x%04X, want 0x%04X", c.reg.XSP, spBefore-2)
 	}
-	got := bus.Read(Word, c.reg.XSP)
+	got := bus.Read16(c.reg.XSP)
 	if got != 0x1234 {
 		t.Errorf("pushed value = 0x%04X, want 0x1234", got)
 	}
@@ -1028,7 +1028,7 @@ func TestPUSH_Mem_Word(t *testing.T) {
 func TestPUSH_Mem_Cycles(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x04)
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0)
+	bus.Write16(0x2000, 0)
 	cycles := c.Step()
 	if cycles != 6 {
 		t.Errorf("PUSH<W>(mem) cycles = %d, want 6", cycles)
@@ -1044,7 +1044,7 @@ func TestPOP_Mem_Byte(t *testing.T) {
 	bus.write8(0x1001, 0x04) // POP<B>(mem)
 	c.reg.WriteReg32(0, 0x2000)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x42 {
 		t.Errorf("POP<B>(mem) = 0x%02X, want 0x42", got)
 	}
@@ -1058,7 +1058,7 @@ func TestPOP_Mem_Word(t *testing.T) {
 	bus.write8(0x1001, 0x06) // POP<W>(mem)
 	c.reg.WriteReg32(0, 0x2000)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0xBEEF {
 		t.Errorf("POP<W>(mem) = 0x%04X, want 0xBEEF", got)
 	}
@@ -1101,7 +1101,7 @@ func TestLD_Mem_Imm_Byte(t *testing.T) {
 	bus.write8(0x1002, 0xAB) // imm8
 	c.reg.WriteReg32(0, 0x2000)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0xAB {
 		t.Errorf("LD<B>(mem),# = 0x%02X, want 0xAB", got)
 	}
@@ -1115,7 +1115,7 @@ func TestLD_Mem_Imm_Word(t *testing.T) {
 	bus.write16LE(0x1002, 0x1234) // imm16
 	c.reg.WriteReg32(0, 0x2000)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0x1234 {
 		t.Errorf("LD<W>(mem),# = 0x%04X, want 0x1234", got)
 	}
@@ -1157,7 +1157,7 @@ func TestLD_Mem_FromAddr_Byte(t *testing.T) {
 	bus.write8(0x3000, 0x42)      // source value
 	c.reg.WriteReg32(0, 0x2000)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x42 {
 		t.Errorf("LD<B>(mem),(#16) = 0x%02X, want 0x42", got)
 	}
@@ -1169,10 +1169,10 @@ func TestLD_Mem_FromAddr_Word(t *testing.T) {
 	bus.write8(0x1000, 0xB0)
 	bus.write8(0x1001, 0x16) // LD<W>(mem),(#16)
 	bus.write16LE(0x1002, 0x3000)
-	bus.Write(Word, 0x3000, 0xBEEF)
+	bus.Write16(0x3000, 0xBEEF)
 	c.reg.WriteReg32(0, 0x2000)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0xBEEF {
 		t.Errorf("LD<W>(mem),(#16) = 0x%04X, want 0xBEEF", got)
 	}
@@ -1200,7 +1200,7 @@ func TestLD_Addr_FromMem_Byte(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x42)
 	c.Step()
-	got := bus.Read(Byte, 0x3000)
+	got := bus.Read8(0x3000)
 	if got != 0x42 {
 		t.Errorf("LD<W>(#16),(mem) = 0x%02X, want 0x42", got)
 	}
@@ -1209,9 +1209,9 @@ func TestLD_Addr_FromMem_Byte(t *testing.T) {
 func TestLD_Addr_FromMem_Word(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x19, 0x00, 0x30) // word (R0), addr=0x3000
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x1234)
+	bus.Write16(0x2000, 0x1234)
 	c.Step()
-	got := bus.Read(Word, 0x3000)
+	got := bus.Read16(0x3000)
 	if got != 0x1234 {
 		t.Errorf("LD<W>(#16),(mem) = 0x%04X, want 0x1234", got)
 	}
@@ -1238,7 +1238,7 @@ func TestEX_Mem_R_Byte(t *testing.T) {
 	c.reg.WriteReg8(r8From3bit[1], 0x22) // A
 	c.Step()
 	checkReg8(t, "A", c.reg.ReadReg8(r8From3bit[1]), 0x11)
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x22 {
 		t.Errorf("(mem) = 0x%02X, want 0x22", got)
 	}
@@ -1247,11 +1247,11 @@ func TestEX_Mem_R_Byte(t *testing.T) {
 func TestEX_Mem_R_Word(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x31) // word (R0), EX (mem),R1
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x1111)
+	bus.Write16(0x2000, 0x1111)
 	c.reg.WriteReg16(1, 0x2222)
 	c.Step()
 	checkReg16(t, "BC", c.reg.ReadReg16(1), 0x1111)
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0x2222 {
 		t.Errorf("(mem) = 0x%04X, want 0x2222", got)
 	}
@@ -1279,7 +1279,7 @@ func TestLDI_Byte(t *testing.T) {
 	c.Step()
 
 	// After LDI: XHL++, XDE++, BC--
-	got := bus.Read(Byte, 0x3000)
+	got := bus.Read8(0x3000)
 	if got != 0xAB {
 		t.Errorf("LDI dest = 0x%02X, want 0xAB", got)
 	}
@@ -1307,9 +1307,9 @@ func TestLDI_Word(t *testing.T) {
 	c.reg.WriteReg32(3, 0x2000)
 	c.reg.WriteReg32(2, 0x3000)
 	c.reg.WriteReg16(1, 4) // BC = 4 (decremented by 1)
-	bus.Write(Word, 0x2000, 0x1234)
+	bus.Write16(0x2000, 0x1234)
 	c.Step()
-	got := bus.Read(Word, 0x3000)
+	got := bus.Read16(0x3000)
 	if got != 0x1234 {
 		t.Errorf("LDI dest = 0x%04X, want 0x1234", got)
 	}
@@ -1325,7 +1325,7 @@ func TestLDD_Byte(t *testing.T) {
 	c.reg.WriteReg16(1, 3)
 	bus.write8(0x2005, 0xCD)
 	c.Step()
-	got := bus.Read(Byte, 0x3005)
+	got := bus.Read8(0x3005)
 	if got != 0xCD {
 		t.Errorf("LDD dest = 0x%02X, want 0xCD", got)
 	}
@@ -1357,14 +1357,14 @@ func TestLDIR_Byte(t *testing.T) {
 	c.Step()
 
 	// All 3 bytes should be copied
-	if bus.Read(Byte, 0x3000) != 0x11 {
-		t.Errorf("LDIR [0] = 0x%02X, want 0x11", bus.Read(Byte, 0x3000))
+	if bus.Read8(0x3000) != 0x11 {
+		t.Errorf("LDIR [0] = 0x%02X, want 0x11", bus.Read8(0x3000))
 	}
-	if bus.Read(Byte, 0x3001) != 0x22 {
-		t.Errorf("LDIR [1] = 0x%02X, want 0x22", bus.Read(Byte, 0x3001))
+	if bus.Read8(0x3001) != 0x22 {
+		t.Errorf("LDIR [1] = 0x%02X, want 0x22", bus.Read8(0x3001))
 	}
-	if bus.Read(Byte, 0x3002) != 0x33 {
-		t.Errorf("LDIR [2] = 0x%02X, want 0x33", bus.Read(Byte, 0x3002))
+	if bus.Read8(0x3002) != 0x33 {
+		t.Errorf("LDIR [2] = 0x%02X, want 0x33", bus.Read8(0x3002))
 	}
 	checkReg32(t, "XHL", c.reg.ReadReg32(3), 0x2003)
 	checkReg32(t, "XDE", c.reg.ReadReg32(2), 0x3003)
@@ -1396,14 +1396,14 @@ func TestLDDR_Byte(t *testing.T) {
 	bus.write8(0x2000, 0x11)
 	c.Step()
 
-	if bus.Read(Byte, 0x3002) != 0x33 {
-		t.Errorf("LDDR [2] = 0x%02X, want 0x33", bus.Read(Byte, 0x3002))
+	if bus.Read8(0x3002) != 0x33 {
+		t.Errorf("LDDR [2] = 0x%02X, want 0x33", bus.Read8(0x3002))
 	}
-	if bus.Read(Byte, 0x3001) != 0x22 {
-		t.Errorf("LDDR [1] = 0x%02X, want 0x22", bus.Read(Byte, 0x3001))
+	if bus.Read8(0x3001) != 0x22 {
+		t.Errorf("LDDR [1] = 0x%02X, want 0x22", bus.Read8(0x3001))
 	}
-	if bus.Read(Byte, 0x3000) != 0x11 {
-		t.Errorf("LDDR [0] = 0x%02X, want 0x11", bus.Read(Byte, 0x3000))
+	if bus.Read8(0x3000) != 0x11 {
+		t.Errorf("LDDR [0] = 0x%02X, want 0x11", bus.Read8(0x3000))
 	}
 	checkReg32(t, "XHL", c.reg.ReadReg32(3), 0x1FFF) // decremented past start
 	checkReg32(t, "XDE", c.reg.ReadReg32(2), 0x2FFF)
@@ -1435,8 +1435,8 @@ func TestLDIR_BC_Zero(t *testing.T) {
 	c.Step()
 
 	// First byte should be copied
-	if bus.Read(Byte, 0x3000) != 0xAA {
-		t.Errorf("LDIR BC=0 [0] = 0x%02X, want 0xAA", bus.Read(Byte, 0x3000))
+	if bus.Read8(0x3000) != 0xAA {
+		t.Errorf("LDIR BC=0 [0] = 0x%02X, want 0xAA", bus.Read8(0x3000))
 	}
 	// BC should be 0 after 65536 decrements
 	checkReg16(t, "BC", c.reg.ReadReg16(1), 0)
@@ -1458,8 +1458,8 @@ func TestLDDR_BC_Zero(t *testing.T) {
 	bus.write8(0x2000, 0xBB)
 	c.Step()
 
-	if bus.Read(Byte, 0x3000) != 0xBB {
-		t.Errorf("LDDR BC=0 [0] = 0x%02X, want 0xBB", bus.Read(Byte, 0x3000))
+	if bus.Read8(0x3000) != 0xBB {
+		t.Errorf("LDDR BC=0 [0] = 0x%02X, want 0xBB", bus.Read8(0x3000))
 	}
 	checkReg16(t, "BC", c.reg.ReadReg16(1), 0)
 	// 7*65536 + 1 = 458753
@@ -1481,7 +1481,7 @@ func TestLDX_Basic(t *testing.T) {
 	bus.write8(0x1004, 0xAB) // val = 0xAB
 	bus.write8(0x1005, 0x00)
 	c.Step()
-	got := bus.Read(Byte, 0x50)
+	got := bus.Read8(0x50)
 	if got != 0xAB {
 		t.Errorf("LDX (#8),# = 0x%02X, want 0xAB", got)
 	}
@@ -1523,7 +1523,7 @@ func TestLDI_XIY_Variant(t *testing.T) {
 	c.reg.WriteReg16(1, 2) // BC = 2
 	bus.write8(0x2000, 0x77)
 	c.Step()
-	got := bus.Read(Byte, 0x3000)
+	got := bus.Read8(0x3000)
 	if got != 0x77 {
 		t.Errorf("LDI XIY variant dest = 0x%02X, want 0x77", got)
 	}
@@ -1568,7 +1568,7 @@ func TestDstRegIndirect_R_plus_r16(t *testing.T) {
 	c.Step()
 
 	// Should store 0xBEEF at address 0x5000 + 0x0010 = 0x5010
-	got := bus.Read(Word, 0x5010)
+	got := bus.Read16(0x5010)
 	if got != 0xBEEF {
 		t.Errorf("memory at $5010 = 0x%04X, want 0xBEEF", got)
 	}
@@ -1612,12 +1612,12 @@ func TestDstRegIndirect_R_plus_r8(t *testing.T) {
 
 	// With correct decoding: W = 0x10, addr = 0x5000 + 0x10 = 0x5010
 	// With buggy decoding: C = 0x30, addr = 0x5000 + 0x30 = 0x5030
-	got := bus.Read(Byte, 0x5010)
+	got := bus.Read8(0x5010)
 	if got != 0x42 {
 		t.Errorf("memory at $5010 = 0x%02X, want 0x42 (correct index W=0x10)", got)
 	}
 	// Verify buggy address was NOT written
-	gotBuggy := bus.Read(Byte, 0x5030)
+	gotBuggy := bus.Read8(0x5030)
 	if gotBuggy == 0x42 {
 		t.Errorf("memory at $5030 = 0x42 - using wrong register (C instead of W)")
 	}

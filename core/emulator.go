@@ -325,7 +325,7 @@ func (e *Emulator) applyLanguage(value string) {
 	} else {
 		lang = 0x01
 	}
-	e.mem.Write(tlcs900h.Byte, 0x6F87, lang)
+	e.mem.Write8(0x6F87, uint8(lang))
 }
 
 // Start finalizes emulator state after all options are applied.
@@ -348,7 +348,7 @@ func (e *Emulator) Start() {
 			e.cpu.SetPC(0xFF1800)
 
 			if e.pendingFirstBoot {
-				e.mem.Write(tlcs900h.Word, 0x6E95, 0x0000)
+				e.mem.Write16(0x6E95, 0x0000)
 				return
 			}
 		}
@@ -362,7 +362,7 @@ func (e *Emulator) Start() {
 
 	e.applyLanguage(e.pendingLanguage)
 	e.applyMonoPalette(e.pendingPalette)
-	e.mem.Write(tlcs900h.Word, 0x6E95, 0x4E50)
+	e.mem.Write16(0x6E95, 0x4E50)
 	e.updateSetupChecksum()
 }
 
@@ -385,13 +385,13 @@ func (e *Emulator) applyMonoPalette(name string) {
 // (interrupt priority config) + $6F94 (mono palette index).
 func (e *Emulator) updateSetupChecksum() {
 	var sum uint32
-	sum += e.mem.Read(tlcs900h.Byte, 0x6F87)
+	sum += uint32(e.mem.Read8(0x6F87))
 	for addr := uint32(0x6C25); addr <= 0x6C2B; addr++ {
-		sum += e.mem.Read(tlcs900h.Byte, addr)
+		sum += uint32(e.mem.Read8(addr))
 	}
-	sum += e.mem.Read(tlcs900h.Byte, 0x6F94)
-	e.mem.Write(tlcs900h.Byte, 0x6C14, sum&0xFF)
-	e.mem.Write(tlcs900h.Byte, 0x6C15, (sum>>8)&0xFF)
+	sum += uint32(e.mem.Read8(0x6F94))
+	e.mem.Write8(0x6C14, uint8(sum))
+	e.mem.Write8(0x6C15, uint8(sum>>8))
 }
 
 // Close releases any resources held by the emulator.

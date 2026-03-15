@@ -1,7 +1,5 @@
 package core
 
-import "github.com/user-none/ecolr/core/tlcs900h"
-
 // fontSet converts the 1bpp font data to 2bpp using the given color indices
 // and writes 4096 bytes to K2GE character RAM at $A000.
 //
@@ -43,8 +41,8 @@ func fontSet(mem *Memory, fontColor, bgColor uint8) {
 			lo |= c << uint(6-px*2)
 		}
 
-		mem.Write(tlcs900h.Byte, dst, uint32(lo))
-		mem.Write(tlcs900h.Byte, dst+1, uint32(hi))
+		mem.Write8(dst, lo)
+		mem.Write8(dst+1, hi)
 		dst += 2
 	}
 }

@@ -392,7 +392,7 @@ func TestHLESysRTCGet(t *testing.T) {
 
 	// Verify bytes 0-5 are BCD format (byte 6 is leap year + day of week, not BCD)
 	for i := uint32(0); i < 6; i++ {
-		val := uint8(hle.mem.Read(tlcs900h.Byte, 0x5000+i))
+		val := hle.mem.Read8(0x5000 + i)
 		// Each BCD byte should have valid nibbles (0-9)
 		hi := val >> 4
 		lo := val & 0x0F
@@ -402,7 +402,7 @@ func TestHLESysRTCGet(t *testing.T) {
 	}
 
 	// Byte 6: upper nibble = years since leap year (0-3), lower nibble = day of week (0-6)
-	b6 := uint8(hle.mem.Read(tlcs900h.Byte, 0x5006))
+	b6 := hle.mem.Read8(0x5006)
 	leapYears := b6 >> 4
 	dow := b6 & 0x0F
 	if leapYears > 3 {
@@ -437,15 +437,15 @@ func TestHLESysGEModeSetColor(t *testing.T) {
 	hle, c := newHLETestCPU(t)
 
 	// Set system code >= $10 for color mode
-	hle.mem.Write(tlcs900h.Byte, 0x6F91, 0x10)
+	hle.mem.Write8(0x6F91, 0x10)
 
 	hle.hleSysGEModeSet(c)
 
-	mode := uint8(hle.mem.Read(tlcs900h.Byte, 0x87E2))
+	mode := hle.mem.Read8(0x87E2)
 	if mode != 0x00 {
 		t.Errorf("K2GE mode = 0x%02X, want 0x00 (color)", mode)
 	}
-	flag := uint8(hle.mem.Read(tlcs900h.Byte, 0x6F95))
+	flag := hle.mem.Read8(0x6F95)
 	if flag != 0x10 {
 		t.Errorf("mode flag = 0x%02X, want 0x10", flag)
 	}
@@ -455,15 +455,15 @@ func TestHLESysGEModeSetMono(t *testing.T) {
 	hle, c := newHLETestCPU(t)
 
 	// Set system code < $10 for mono mode
-	hle.mem.Write(tlcs900h.Byte, 0x6F91, 0x00)
+	hle.mem.Write8(0x6F91, 0x00)
 
 	hle.hleSysGEModeSet(c)
 
-	mode := uint8(hle.mem.Read(tlcs900h.Byte, 0x87E2))
+	mode := hle.mem.Read8(0x87E2)
 	if mode != 0x80 {
 		t.Errorf("K2GE mode = 0x%02X, want 0x80 (mono)", mode)
 	}
-	flag := uint8(hle.mem.Read(tlcs900h.Byte, 0x6F95))
+	flag := hle.mem.Read8(0x6F95)
 	if flag != 0x00 {
 		t.Errorf("mode flag = 0x%02X, want 0x00", flag)
 	}
@@ -473,13 +473,13 @@ func TestHLESysComOnOffRTS(t *testing.T) {
 	hle, c := newHLETestCPU(t)
 
 	hle.hleSysComOnRTS(c)
-	got := uint8(hle.mem.Read(tlcs900h.Byte, 0xB2))
+	got := hle.mem.Read8(0xB2)
 	if got != 0x00 {
 		t.Errorf("ComOnRTS: $B2 = 0x%02X, want 0x00", got)
 	}
 
 	hle.hleSysComOffRTS(c)
-	got = uint8(hle.mem.Read(tlcs900h.Byte, 0xB2))
+	got = hle.mem.Read8(0xB2)
 	if got != 0x01 {
 		t.Errorf("ComOffRTS: $B2 = 0x%02X, want 0x01", got)
 	}
@@ -521,7 +521,7 @@ func TestHLESysFlashWrite(t *testing.T) {
 
 	// Write some source data into work RAM
 	for i := uint32(0); i < 512; i++ {
-		mem.Write(tlcs900h.Byte, 0x5000+i, uint32(0xA0+uint8(i)))
+		mem.Write8(0x5000+i, 0xA0+uint8(i))
 	}
 
 	// Set up bank 3 registers: bank=0, pageCount=2 (512 bytes), dest=0x1000, src=$5000
@@ -657,7 +657,7 @@ func TestInitVectorTable(t *testing.T) {
 	retiAddr := uint32(hleBIOSBase + hleRETIHandler)
 	for i := 0; i < 18; i++ {
 		addr := uint32(0x6FB8) + uint32(i)*4
-		got := hle.mem.Read(tlcs900h.Long, addr) & 0xFFFFFF
+		got := hle.mem.Read32(addr) & 0xFFFFFF
 		if got != retiAddr {
 			t.Errorf("RAM vector[%d] at $%04X = 0x%06X, want 0x%06X", i, addr, got, retiAddr)
 		}
@@ -675,8 +675,8 @@ func TestSWI1DispatchRETI(t *testing.T) {
 	c.SetState(regs)
 
 	// Push SR+PC onto stack (SWI pushes SR at XSP, PC at XSP+2).
-	hle.mem.Write(tlcs900h.Word, 0x6BFA, uint32(wantSR))
-	hle.mem.Write(tlcs900h.Long, 0x6BFC, wantPC)
+	hle.mem.Write16(0x6BFA, wantSR)
+	hle.mem.Write32(0x6BFC, wantPC)
 
 	regs = c.Registers()
 	regs.XSP = 0x6BFA
@@ -701,10 +701,10 @@ func TestIntDispatchUserHandler(t *testing.T) {
 
 	// Install a user handler for VBlank (vector offset $2C -> RAM $6FCC).
 	userHandler := uint32(0x200400)
-	hle.mem.Write(tlcs900h.Byte, 0x6FCC, userHandler&0xFF)
-	hle.mem.Write(tlcs900h.Byte, 0x6FCD, (userHandler>>8)&0xFF)
-	hle.mem.Write(tlcs900h.Byte, 0x6FCE, (userHandler>>16)&0xFF)
-	hle.mem.Write(tlcs900h.Byte, 0x6FCF, 0)
+	hle.mem.Write8(0x6FCC, uint8(userHandler))
+	hle.mem.Write8(0x6FCD, uint8(userHandler>>8))
+	hle.mem.Write8(0x6FCE, uint8(userHandler>>16))
+	hle.mem.Write8(0x6FCF, 0)
 
 	regs := c.Registers()
 	regs.XSP = 0x6C00
@@ -730,8 +730,8 @@ func TestIntDispatchDefaultRETI(t *testing.T) {
 	regs.XSP = 0x6BFA
 	c.SetState(regs)
 
-	hle.mem.Write(tlcs900h.Word, 0x6BFA, uint32(wantSR))
-	hle.mem.Write(tlcs900h.Long, 0x6BFC, wantPC)
+	hle.mem.Write16(0x6BFA, wantSR)
+	hle.mem.Write32(0x6BFC, wantPC)
 
 	hle.hleIntDispatch(c, 0x2C)
 
@@ -757,8 +757,8 @@ func TestIntDispatchUnmappedVector(t *testing.T) {
 	regs.XSP = 0x6BFA
 	c.SetState(regs)
 
-	hle.mem.Write(tlcs900h.Word, 0x6BFA, uint32(wantSR))
-	hle.mem.Write(tlcs900h.Long, 0x6BFC, wantPC)
+	hle.mem.Write16(0x6BFA, wantSR)
+	hle.mem.Write32(0x6BFC, wantPC)
 
 	hle.hleIntDispatch(c, 0x04) // vector offset $04, not in map
 
@@ -788,8 +788,8 @@ func TestHLESysFontSet(t *testing.T) {
 	// Right 4 pixels: bg=2 -> lo = 0b10_10_10_10 = 0xAA
 	for row := 0; row < 8; row++ {
 		addr := uint32(0xA000) + uint32(row*2)
-		lo := uint8(hle.mem.Read(tlcs900h.Byte, addr))
-		hi := uint8(hle.mem.Read(tlcs900h.Byte, addr+1))
+		lo := hle.mem.Read8(addr)
+		hi := hle.mem.Read8(addr + 1)
 		if lo != 0xAA {
 			t.Errorf("char 0 row %d lo = 0x%02X, want 0xAA", row, lo)
 		}
@@ -803,8 +803,8 @@ func TestHLESysFontSet(t *testing.T) {
 	// Right 4 pixels: font=1 -> lo = 0b01_01_01_01 = 0x55
 	for row := 0; row < 8; row++ {
 		addr := uint32(0xA000) + 32 + uint32(row*2) // char 2 starts at offset 32
-		lo := uint8(hle.mem.Read(tlcs900h.Byte, addr))
-		hi := uint8(hle.mem.Read(tlcs900h.Byte, addr+1))
+		lo := hle.mem.Read8(addr)
+		hi := hle.mem.Read8(addr + 1)
 		if lo != 0x55 {
 			t.Errorf("char 2 row %d lo = 0x%02X, want 0x55", row, lo)
 		}
@@ -826,7 +826,7 @@ func TestHLESysFontSetDefaultColors(t *testing.T) {
 
 	// All output should be zero since both colors are 0
 	for i := uint32(0); i < 4096; i++ {
-		val := uint8(hle.mem.Read(tlcs900h.Byte, 0xA000+i))
+		val := hle.mem.Read8(0xA000 + i)
 		if val != 0x00 {
 			t.Errorf("$%04X = 0x%02X with zero colors, want 0x00", 0xA000+i, val)
 			break
@@ -848,8 +848,8 @@ func TestHLESysFontSetMixedRow(t *testing.T) {
 	// Font data for $20 row 0: hleFontData[0x100] = 0x00 (all clear)
 	// So output should be all bg (0).
 	addr := uint32(0xA000) + uint32(0x20)*16
-	lo := uint8(hle.mem.Read(tlcs900h.Byte, addr))
-	hi := uint8(hle.mem.Read(tlcs900h.Byte, addr+1))
+	lo := hle.mem.Read8(addr)
+	hi := hle.mem.Read8(addr + 1)
 	if lo != 0x00 || hi != 0x00 {
 		t.Errorf("char $20 row 0: lo=0x%02X hi=0x%02X, want 0x00 0x00", lo, hi)
 	}
@@ -858,8 +858,8 @@ func TestHLESysFontSetMixedRow(t *testing.T) {
 	// Left 4 pixels (bits 7-4): 0,0,0,1 -> 0b00_00_00_11 = 0x03
 	// Right 4 pixels (bits 3-0): 0,0,0,0 -> 0b00_00_00_00 = 0x00
 	addr21 := uint32(0xA000) + uint32(0x21)*16
-	lo21 := uint8(hle.mem.Read(tlcs900h.Byte, addr21))
-	hi21 := uint8(hle.mem.Read(tlcs900h.Byte, addr21+1))
+	lo21 := hle.mem.Read8(addr21)
+	hi21 := hle.mem.Read8(addr21 + 1)
 	if hi21 != 0x03 {
 		t.Errorf("char $21 row 0: hi=0x%02X, want 0x03", hi21)
 	}
@@ -1016,7 +1016,7 @@ func TestInitRAMK2GE(t *testing.T) {
 		{0x8117, 0x07, "SC2PLT13"},
 	}
 	for _, tt := range checks {
-		got := uint8(mem.Read(tlcs900h.Byte, tt.addr))
+		got := mem.Read8(tt.addr)
 		if got != tt.want {
 			t.Errorf("%s ($%04X) = 0x%02X, want 0x%02X", tt.name, tt.addr, got, tt.want)
 		}
@@ -1024,16 +1024,16 @@ func TestInitRAMK2GE(t *testing.T) {
 
 	// Cart has system code $23 (color), so setGEMode sets K2GE color mode.
 	// $87E2 = $00 (color), $6F95 = $10 (color flag)
-	if got := uint8(mem.Read(tlcs900h.Byte, 0x87E2)); got != 0x00 {
+	if got := mem.Read8(0x87E2); got != 0x00 {
 		t.Errorf("$87E2 = 0x%02X, want 0x00 (K2GE color mode)", got)
 	}
-	if got := uint8(mem.Read(tlcs900h.Byte, 0x6F95)); got != 0x10 {
+	if got := mem.Read8(0x6F95); got != 0x10 {
 		t.Errorf("$6F95 = 0x%02X, want 0x10 (color flag)", got)
 	}
 
 	// Color cart: K1GE compat palette area ($8380-$83FF) should NOT be filled
 	for i := uint32(0); i < 0x80; i++ {
-		got := uint8(mem.Read(tlcs900h.Byte, 0x8380+i))
+		got := mem.Read8(0x8380 + i)
 		if got != 0x00 {
 			t.Errorf("palette $%04X = 0x%02X, want 0x00 (color game, should not fill)", 0x8380+i, got)
 			break
@@ -1065,40 +1065,40 @@ func TestInitRAMCartHeader(t *testing.T) {
 	mem.InitSystemState()
 
 	// Entry point at $6C00
-	if mem.Read(tlcs900h.Long, 0x6C00)&0xFFFFFF != 0x200040 {
-		t.Errorf("$6C00 entry point = 0x%06X, want 0x200040", mem.Read(tlcs900h.Long, 0x6C00)&0xFFFFFF)
+	if mem.Read32(0x6C00)&0xFFFFFF != 0x200040 {
+		t.Errorf("$6C00 entry point = 0x%06X, want 0x200040", mem.Read32(0x6C00)&0xFFFFFF)
 	}
 	// Software ID at $6C04 and $6E82
-	if uint16(mem.Read(tlcs900h.Word, 0x6C04)) != 0xCDAB {
-		t.Errorf("$6C04 SW ID = 0x%04X, want 0xCDAB", uint16(mem.Read(tlcs900h.Word, 0x6C04)))
+	if mem.Read16(0x6C04) != 0xCDAB {
+		t.Errorf("$6C04 SW ID = 0x%04X, want 0xCDAB", mem.Read16(0x6C04))
 	}
-	if uint16(mem.Read(tlcs900h.Word, 0x6E82)) != 0xCDAB {
-		t.Errorf("$6E82 SW ID = 0x%04X, want 0xCDAB", uint16(mem.Read(tlcs900h.Word, 0x6E82)))
+	if mem.Read16(0x6E82) != 0xCDAB {
+		t.Errorf("$6E82 SW ID = 0x%04X, want 0xCDAB", mem.Read16(0x6E82))
 	}
 	// Sub-code at $6C06 and $6E84
-	if uint8(mem.Read(tlcs900h.Byte, 0x6C06)) != 0x07 {
-		t.Errorf("$6C06 sub-code = 0x%02X, want 0x07", uint8(mem.Read(tlcs900h.Byte, 0x6C06)))
+	if mem.Read8(0x6C06) != 0x07 {
+		t.Errorf("$6C06 sub-code = 0x%02X, want 0x07", mem.Read8(0x6C06))
 	}
-	if uint8(mem.Read(tlcs900h.Byte, 0x6E84)) != 0x07 {
-		t.Errorf("$6E84 sub-code = 0x%02X, want 0x07", uint8(mem.Read(tlcs900h.Byte, 0x6E84)))
+	if mem.Read8(0x6E84) != 0x07 {
+		t.Errorf("$6E84 sub-code = 0x%02X, want 0x07", mem.Read8(0x6E84))
 	}
 	// System code at $6F91
-	if uint8(mem.Read(tlcs900h.Byte, 0x6F91)) != 0x10 {
-		t.Errorf("$6F91 sys code = 0x%02X, want 0x10", uint8(mem.Read(tlcs900h.Byte, 0x6F91)))
+	if mem.Read8(0x6F91) != 0x10 {
+		t.Errorf("$6F91 sys code = 0x%02X, want 0x10", mem.Read8(0x6F91))
 	}
 	// $6F95 is set by setGEMode: $10 for color (system code >= $10)
-	if uint8(mem.Read(tlcs900h.Byte, 0x6F95)) != 0x10 {
-		t.Errorf("$6F95 = 0x%02X, want 0x10 (color mode)", uint8(mem.Read(tlcs900h.Byte, 0x6F95)))
+	if mem.Read8(0x6F95) != 0x10 {
+		t.Errorf("$6F95 = 0x%02X, want 0x10 (color mode)", mem.Read8(0x6F95))
 	}
 	// Software ID is written to $6C04 (verified above) and $6C69.
 	// $6C69 write lands at the normal workRAM offset; the read path
 	// mirrors it back through $6C04.
-	if uint8(mem.Read(tlcs900h.Byte, 0x6C04)) != 0xAB {
-		t.Errorf("$6C04 SW ID = 0x%02X, want 0xAB", uint8(mem.Read(tlcs900h.Byte, 0x6C04)))
+	if mem.Read8(0x6C04) != 0xAB {
+		t.Errorf("$6C04 SW ID = 0x%02X, want 0xAB", mem.Read8(0x6C04))
 	}
 	// Title at $6C08
 	for i := 0; i < 12; i++ {
-		got := uint8(mem.Read(tlcs900h.Byte, uint32(0x6C08+i)))
+		got := mem.Read8(uint32(0x6C08 + i))
 		want := cart[0x24+i]
 		if got != want {
 			t.Errorf("$%04X title[%d] = 0x%02X, want 0x%02X", 0x6C08+i, i, got, want)
@@ -1111,30 +1111,38 @@ func TestInitRAMBootState(t *testing.T) {
 	_, _, mem := newHLETestCPUWithCart(t, 256)
 	mem.InitSystemState()
 
-	checks := []struct {
+	byteChecks := []struct {
 		addr uint32
-		size tlcs900h.Size
-		want uint32
+		want uint8
 		name string
 	}{
-		{0x6C14, tlcs900h.Byte, 0xDC, "checksum low"},
-		{0x6C46, tlcs900h.Byte, 0x01, "cart present"},
-		{0x6C55, tlcs900h.Byte, 0x01, "commercial game"},
-		{0x6C7A, tlcs900h.Word, 0xA5A5, "boot marker 1"},
-		{0x6C7C, tlcs900h.Word, 0x5AA5, "boot marker 2"},
-		{0x6F80, tlcs900h.Word, 0x03FF, "battery voltage"},
-		{0x6F83, tlcs900h.Byte, 0x40, "boot flags"},
-		{0x6F84, tlcs900h.Byte, 0x40, "user boot"},
-		{0x6F87, tlcs900h.Byte, 0x01, "language English"},
+		{0x6C14, 0xDC, "checksum low"},
+		{0x6C46, 0x01, "cart present"},
+		{0x6C55, 0x01, "commercial game"},
+		{0x6F83, 0x40, "boot flags"},
+		{0x6F84, 0x40, "user boot"},
+		{0x6F87, 0x01, "language English"},
 	}
-	for _, tt := range checks {
-		got := mem.Read(tt.size, tt.addr)
-		mask := uint32(0xFF)
-		if tt.size == tlcs900h.Word {
-			mask = 0xFFFF
+	for _, tt := range byteChecks {
+		got := mem.Read8(tt.addr)
+		if got != tt.want {
+			t.Errorf("%s ($%04X) = 0x%02X, want 0x%02X", tt.name, tt.addr, got, tt.want)
 		}
-		if got&mask != tt.want {
-			t.Errorf("%s ($%04X) = 0x%X, want 0x%X", tt.name, tt.addr, got&mask, tt.want)
+	}
+
+	wordChecks := []struct {
+		addr uint32
+		want uint16
+		name string
+	}{
+		{0x6C7A, 0xA5A5, "boot marker 1"},
+		{0x6C7C, 0x5AA5, "boot marker 2"},
+		{0x6F80, 0x03FF, "battery voltage"},
+	}
+	for _, tt := range wordChecks {
+		got := mem.Read16(tt.addr)
+		if got != tt.want {
+			t.Errorf("%s ($%04X) = 0x%04X, want 0x%04X", tt.name, tt.addr, got, tt.want)
 		}
 	}
 }
@@ -1152,27 +1160,27 @@ func TestVBlankHousekeeping(t *testing.T) {
 	regs := c.Registers()
 	regs.XSP = 0x6BFA
 	c.SetState(regs)
-	hle.mem.Write(tlcs900h.Word, 0x6BFA, uint32(wantSR))
-	hle.mem.Write(tlcs900h.Long, 0x6BFC, wantPC)
+	hle.mem.Write16(0x6BFA, wantSR)
+	hle.mem.Write32(0x6BFC, wantPC)
 
 	// Dispatch VBlank (no user handler, default RETI)
 	hle.hleIntDispatch(c, 0x2C)
 
 	// Check input was scanned - $6F82 stores active-high (bits 0-6 from $B0)
 	// $B0=0x10 (bit 4 set = A pressed) -> $6F82 = 0x10
-	input := uint8(hle.mem.Read(tlcs900h.Byte, 0x6F82))
+	input := hle.mem.Read8(0x6F82)
 	if input != 0x10 {
 		t.Errorf("$6F82 = 0x%02X, want 0x10 (A pressed, active-high)", input)
 	}
 
 	// Check $6C5F stores raw value for edge detection
-	prev := uint8(hle.mem.Read(tlcs900h.Byte, 0x6C5F))
+	prev := hle.mem.Read8(0x6C5F)
 	if prev != 0x10 {
 		t.Errorf("$6C5F = 0x%02X, want 0x10 (raw active-high)", prev)
 	}
 
 	// Check battery voltage was set
-	batt := uint16(hle.mem.Read(tlcs900h.Word, 0x6F80))
+	batt := hle.mem.Read16(0x6F80)
 	if batt != 0x03FF {
 		t.Errorf("$6F80 battery = 0x%04X, want 0x03FF", batt)
 	}
@@ -1202,11 +1210,11 @@ func TestInitRAMFlashType(t *testing.T) {
 	_, _, mem := newHLETestCPUWithCart(t, 1024*1024)
 	mem.InitSystemState()
 
-	cs0 := uint8(mem.Read(tlcs900h.Byte, 0x6C58))
+	cs0 := mem.Read8(0x6C58)
 	if cs0 != 2 {
 		t.Errorf("$6C58 CS0 type = %d, want 2 (8Mbit)", cs0)
 	}
-	cs0copy := uint8(mem.Read(tlcs900h.Byte, 0x6F92))
+	cs0copy := mem.Read8(0x6F92)
 	if cs0copy != 2 {
 		t.Errorf("$6F92 CS0 type copy = %d, want 2", cs0copy)
 	}
@@ -1218,7 +1226,7 @@ func TestInitRAMSpriteTable(t *testing.T) {
 
 	// Check sprite table 1 at $9000 has $0020 words
 	for i := uint32(0); i < 0x200; i += 2 {
-		got := uint16(mem.Read(tlcs900h.Word, 0x9000+i))
+		got := mem.Read16(0x9000 + i)
 		if got != 0x0020 {
 			t.Errorf("sprite1[$%03X] = 0x%04X, want 0x0020", i, got)
 			break
@@ -1226,7 +1234,7 @@ func TestInitRAMSpriteTable(t *testing.T) {
 	}
 	// Check sprite table 2 at $9800
 	for i := uint32(0); i < 0x200; i += 2 {
-		got := uint16(mem.Read(tlcs900h.Word, 0x9800+i))
+		got := mem.Read16(0x9800 + i)
 		if got != 0x0020 {
 			t.Errorf("sprite2[$%03X] = 0x%04X, want 0x0020", i, got)
 			break
@@ -1246,12 +1254,12 @@ func TestInitMonoModeSet(t *testing.T) {
 	mem.InitSystemState()
 
 	// $87E2 should be $80 (K1GE mode)
-	mode := uint8(mem.Read(tlcs900h.Byte, 0x87E2))
+	mode := mem.Read8(0x87E2)
 	if mode != 0x80 {
 		t.Errorf("$87E2 = 0x%02X, want 0x80 (K1GE mode)", mode)
 	}
 	// $6F95 should be $00 (mono flag)
-	flag := uint8(mem.Read(tlcs900h.Byte, 0x6F95))
+	flag := mem.Read8(0x6F95)
 	if flag != 0x00 {
 		t.Errorf("$6F95 = 0x%02X, want 0x00 (mono)", flag)
 	}
@@ -1269,12 +1277,12 @@ func TestInitColorModeSet(t *testing.T) {
 	mem.InitSystemState()
 
 	// $87E2 should be $00 (K2GE color mode)
-	mode := uint8(mem.Read(tlcs900h.Byte, 0x87E2))
+	mode := mem.Read8(0x87E2)
 	if mode != 0x00 {
 		t.Errorf("$87E2 = 0x%02X, want 0x00 (K2GE color)", mode)
 	}
 	// $6F95 should be $10 (color flag)
-	flag := uint8(mem.Read(tlcs900h.Byte, 0x6F95))
+	flag := mem.Read8(0x6F95)
 	if flag != 0x10 {
 		t.Errorf("$6F95 = 0x%02X, want 0x10 (color)", flag)
 	}
@@ -1298,12 +1306,12 @@ func TestInitK1GEPalettesMono(t *testing.T) {
 	}
 
 	// Background color ($83E0) should be white
-	bgColor := uint16(mem.Read(tlcs900h.Word, 0x83E0))
+	bgColor := mem.Read16(0x83E0)
 	if bgColor != 0x0FFF {
 		t.Errorf("$83E0 BG color = 0x%04X, want 0x0FFF (white)", bgColor)
 	}
 	// Window color ($83F0) should be white
-	winColor := uint16(mem.Read(tlcs900h.Word, 0x83F0))
+	winColor := mem.Read16(0x83F0)
 	if winColor != 0x0FFF {
 		t.Errorf("$83F0 window color = 0x%04X, want 0x0FFF (white)", winColor)
 	}
@@ -1321,7 +1329,7 @@ func TestInitK1GEPalettesMono(t *testing.T) {
 		for group := uint32(0); group < 2; group++ {
 			for i, want := range wantShades {
 				addr := base.addr + group*16 + uint32(i)*2
-				got := uint16(mem.Read(tlcs900h.Word, addr))
+				got := mem.Read16(addr)
 				if got != want {
 					t.Errorf("%s group %d shade %d ($%04X) = 0x%04X, want 0x%04X",
 						base.name, group, i, addr, got, want)
@@ -1344,7 +1352,7 @@ func TestInitK1GEPalettesColor(t *testing.T) {
 
 	// K1GE compat palettes should NOT be filled for color games
 	for i := uint32(0); i < 0x60; i++ {
-		got := uint8(mem.Read(tlcs900h.Byte, 0x8380+i))
+		got := mem.Read8(0x8380 + i)
 		if got != 0x00 {
 			t.Errorf("palette $%04X = 0x%02X, want 0x00 (color game, should not fill)", 0x8380+i, got)
 			break

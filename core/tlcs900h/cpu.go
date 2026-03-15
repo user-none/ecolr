@@ -234,12 +234,29 @@ func (c *CPU) RequestInterrupt(level uint8, vector uint8) {
 
 // readBus reads from the bus with 24-bit address masking.
 func (c *CPU) readBus(sz Size, addr uint32) uint32 {
-	return c.bus.Read(sz, addr&addrMask)
+	addr &= addrMask
+	switch sz {
+	case Byte:
+		return uint32(c.bus.Read8(addr))
+	case Word:
+		return uint32(c.bus.Read16(addr))
+	case Long:
+		return c.bus.Read32(addr)
+	}
+	return 0
 }
 
 // writeBus writes to the bus with 24-bit address masking.
 func (c *CPU) writeBus(sz Size, addr uint32, val uint32) {
-	c.bus.Write(sz, addr&addrMask, val)
+	addr &= addrMask
+	switch sz {
+	case Byte:
+		c.bus.Write8(addr, uint8(val))
+	case Word:
+		c.bus.Write16(addr, uint16(val))
+	case Long:
+		c.bus.Write32(addr, val)
+	}
 }
 
 // fetchPC reads a byte at PC and advances PC by 1.

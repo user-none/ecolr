@@ -36,8 +36,8 @@ func TestDACMixing(t *testing.T) {
 	emu.Start()
 
 	// Write non-center DAC values via Memory
-	emu.mem.Write(tlcs900h.Byte, 0xA2, 0xFF) // left = max
-	emu.mem.Write(tlcs900h.Byte, 0xA3, 0x00) // right = min
+	emu.mem.Write8(0xA2, 0xFF) // left = max
+	emu.mem.Write8(0xA3, 0x00) // right = min
 
 	emu.RunFrame()
 
@@ -71,8 +71,8 @@ func TestDACSilenceAtCenter(t *testing.T) {
 	emu.Start()
 
 	// DAC at center value produces zero contribution
-	emu.mem.Write(tlcs900h.Byte, 0xA2, 0x80)
-	emu.mem.Write(tlcs900h.Byte, 0xA3, 0x80)
+	emu.mem.Write8(0xA2, 0x80)
+	emu.mem.Write8(0xA3, 0x80)
 
 	emu.RunFrame()
 
@@ -120,7 +120,7 @@ func TestSetOptionFirstBootHLE(t *testing.T) {
 	}
 
 	// Config marker should still be set (HLE + first_boot = normal path)
-	marker := uint16(emu.mem.Read(tlcs900h.Word, 0x6E95))
+	marker := emu.mem.Read16(0x6E95)
 	if marker != 0x4E50 {
 		t.Errorf("$6E95 = 0x%04X, want 0x4E50 (HLE ignores first_boot)", marker)
 	}
@@ -154,13 +154,13 @@ func TestSetOptionMonoPaletteBW(t *testing.T) {
 
 	// Shade 0 (brightest) should be $0FFF in all K1GE compat areas
 	for _, addr := range []uint32{0x8380, 0x83A0, 0x83C0} {
-		got := uint16(emu.mem.Read(tlcs900h.Word, addr))
+		got := emu.mem.Read16(addr)
 		if got != 0x0FFF {
 			t.Errorf("$%04X shade 0 = 0x%04X, want 0x0FFF", addr, got)
 		}
 	}
 	// $6F94 should be 0
-	if idx := uint8(emu.mem.Read(tlcs900h.Byte, 0x6F94)); idx != 0x00 {
+	if idx := emu.mem.Read8(0x6F94); idx != 0x00 {
 		t.Errorf("$6F94 = 0x%02X, want 0x00", idx)
 	}
 }
@@ -175,12 +175,12 @@ func TestSetOptionMonoPaletteBlue(t *testing.T) {
 	emu.Start()
 
 	// Shade 1 for Blue: $0FCC from BIOS ROM (R=C, G=C, B=F in hardware format)
-	got := uint16(emu.mem.Read(tlcs900h.Word, 0x8382))
+	got := emu.mem.Read16(0x8382)
 	if got != 0x0FCC {
 		t.Errorf("$8382 shade 1 = 0x%04X, want 0x0FCC (Blue)", got)
 	}
 	// $6F94 should be 3 (Blue index)
-	if idx := uint8(emu.mem.Read(tlcs900h.Byte, 0x6F94)); idx != 0x03 {
+	if idx := emu.mem.Read8(0x6F94); idx != 0x03 {
 		t.Errorf("$6F94 = 0x%02X, want 0x03", idx)
 	}
 }
@@ -198,7 +198,7 @@ func TestSetOptionMonoPaletteAllSchemes(t *testing.T) {
 		// Check sprite compat palette group 0
 		for i, want := range pal.Shades {
 			addr := uint32(0x8380) + uint32(i)*2
-			got := uint16(emu.mem.Read(tlcs900h.Word, addr))
+			got := emu.mem.Read16(addr)
 			if got != uint16(want) {
 				t.Errorf("%s: $%04X shade %d = 0x%04X, want 0x%04X",
 					pal.Name, addr, i, got, want)
@@ -206,7 +206,7 @@ func TestSetOptionMonoPaletteAllSchemes(t *testing.T) {
 		}
 
 		// $6F94 index should match
-		gotIdx := uint32(emu.mem.Read(tlcs900h.Byte, 0x6F94))
+		gotIdx := uint32(emu.mem.Read8(0x6F94))
 		if gotIdx != pal.Index {
 			t.Errorf("%s: $6F94 = 0x%02X, want 0x%02X", pal.Name, gotIdx, pal.Index)
 		}
@@ -222,12 +222,12 @@ func TestSetOptionMonoPaletteInvalid(t *testing.T) {
 	// Apply Black & White via Start
 	emu.SetOption("mono_palette", "Black & White")
 	emu.Start()
-	before := uint16(emu.mem.Read(tlcs900h.Word, 0x8382))
+	before := emu.mem.Read16(0x8382)
 
 	// Invalid name should be a no-op (Start applies invalid -> applyMonoPalette returns early)
 	emu.SetOption("mono_palette", "InvalidName")
 	emu.Start()
-	after := uint16(emu.mem.Read(tlcs900h.Word, 0x8382))
+	after := emu.mem.Read16(0x8382)
 	if after != before {
 		t.Errorf("invalid palette changed $8382: 0x%04X -> 0x%04X", before, after)
 	}
@@ -242,7 +242,7 @@ func TestSetOptionLanguageEnglish(t *testing.T) {
 	emu.SetOption("language", "English")
 	emu.Start()
 
-	got := uint8(emu.mem.Read(tlcs900h.Byte, 0x6F87))
+	got := emu.mem.Read8(0x6F87)
 	if got != 0x01 {
 		t.Errorf("$6F87 = 0x%02X, want 0x01 (English)", got)
 	}
@@ -257,7 +257,7 @@ func TestSetOptionLanguageJapanese(t *testing.T) {
 	emu.SetOption("language", "Japanese")
 	emu.Start()
 
-	got := uint8(emu.mem.Read(tlcs900h.Byte, 0x6F87))
+	got := emu.mem.Read8(0x6F87)
 	if got != 0x00 {
 		t.Errorf("$6F87 = 0x%02X, want 0x00 (Japanese)", got)
 	}
@@ -273,7 +273,7 @@ func TestSetOptionLanguageChecksum(t *testing.T) {
 	// English ($6F87=$01): checksum = $01 + $DC = $DD
 	emu.SetOption("language", "English")
 	emu.Start()
-	got := uint16(emu.mem.Read(tlcs900h.Word, 0x6C14))
+	got := emu.mem.Read16(0x6C14)
 	if got != 0x00DD {
 		t.Errorf("checksum after English = 0x%04X, want 0x00DD", got)
 	}
@@ -281,7 +281,7 @@ func TestSetOptionLanguageChecksum(t *testing.T) {
 	// Japanese ($6F87=$00): checksum = $00 + $DC = $DC
 	emu.SetOption("language", "Japanese")
 	emu.Start()
-	got = uint16(emu.mem.Read(tlcs900h.Word, 0x6C14))
+	got = emu.mem.Read16(0x6C14)
 	if got != 0x00DC {
 		t.Errorf("checksum after Japanese = 0x%04X, want 0x00DC", got)
 	}
@@ -294,13 +294,13 @@ func TestSetOptionLanguageRealBIOSFastBoot(t *testing.T) {
 	emu.SetOption("language", "Japanese")
 	emu.Start()
 
-	got := uint8(emu.mem.Read(tlcs900h.Byte, 0x6F87))
+	got := emu.mem.Read8(0x6F87)
 	if got != 0x00 {
 		t.Errorf("$6F87 = 0x%02X, want 0x00 (Japanese applied for fast boot)", got)
 	}
 
 	// Config marker should be set
-	marker := uint16(emu.mem.Read(tlcs900h.Word, 0x6E95))
+	marker := emu.mem.Read16(0x6E95)
 	if marker != 0x4E50 {
 		t.Errorf("$6E95 = 0x%04X, want 0x4E50", marker)
 	}
@@ -317,7 +317,7 @@ func TestSetOptionMonoPaletteChecksum(t *testing.T) {
 	emu.SetOption("language", "English")
 	emu.SetOption("mono_palette", "Blue")
 	emu.Start()
-	got := uint16(emu.mem.Read(tlcs900h.Word, 0x6C14))
+	got := emu.mem.Read16(0x6C14)
 	if got != 0x00E0 {
 		t.Errorf("checksum after Blue palette = 0x%04X, want 0x00E0", got)
 	}
@@ -348,7 +348,7 @@ func TestStartRealBIOSNormalBoot(t *testing.T) {
 	emu.Start()
 
 	// Config marker should be $4E50
-	marker := uint16(emu.mem.Read(tlcs900h.Word, 0x6E95))
+	marker := emu.mem.Read16(0x6E95)
 	if marker != 0x4E50 {
 		t.Errorf("$6E95 = 0x%04X, want 0x4E50", marker)
 	}
@@ -359,7 +359,7 @@ func TestStartRealBIOSNormalBoot(t *testing.T) {
 	}
 
 	// Checksum should be valid: $01 + $DC + $00 = $DD
-	checksum := uint16(emu.mem.Read(tlcs900h.Word, 0x6C14))
+	checksum := emu.mem.Read16(0x6C14)
 	if checksum != 0x00DD {
 		t.Errorf("checksum = 0x%04X, want 0x00DD", checksum)
 	}
@@ -373,7 +373,7 @@ func TestStartRealBIOSFirstBoot(t *testing.T) {
 	emu.Start()
 
 	// Config marker should be zeroed for first boot
-	marker := uint16(emu.mem.Read(tlcs900h.Word, 0x6E95))
+	marker := emu.mem.Read16(0x6E95)
 	if marker != 0x0000 {
 		t.Errorf("$6E95 = 0x%04X, want 0x0000 (first boot)", marker)
 	}
@@ -404,29 +404,29 @@ func TestStartOrderIndependence(t *testing.T) {
 	emu2.Start()
 
 	// Language should match
-	lang1 := uint8(emu1.mem.Read(tlcs900h.Byte, 0x6F87))
-	lang2 := uint8(emu2.mem.Read(tlcs900h.Byte, 0x6F87))
+	lang1 := emu1.mem.Read8(0x6F87)
+	lang2 := emu2.mem.Read8(0x6F87)
 	if lang1 != lang2 {
 		t.Errorf("language mismatch: order1=0x%02X, order2=0x%02X", lang1, lang2)
 	}
 
 	// Palette index should match
-	pal1 := uint8(emu1.mem.Read(tlcs900h.Byte, 0x6F94))
-	pal2 := uint8(emu2.mem.Read(tlcs900h.Byte, 0x6F94))
+	pal1 := emu1.mem.Read8(0x6F94)
+	pal2 := emu2.mem.Read8(0x6F94)
 	if pal1 != pal2 {
 		t.Errorf("palette mismatch: order1=0x%02X, order2=0x%02X", pal1, pal2)
 	}
 
 	// Checksum should match
-	cs1 := uint16(emu1.mem.Read(tlcs900h.Word, 0x6C14))
-	cs2 := uint16(emu2.mem.Read(tlcs900h.Word, 0x6C14))
+	cs1 := emu1.mem.Read16(0x6C14)
+	cs2 := emu2.mem.Read16(0x6C14)
 	if cs1 != cs2 {
 		t.Errorf("checksum mismatch: order1=0x%04X, order2=0x%04X", cs1, cs2)
 	}
 
 	// Config marker should match
-	m1 := uint16(emu1.mem.Read(tlcs900h.Word, 0x6E95))
-	m2 := uint16(emu2.mem.Read(tlcs900h.Word, 0x6E95))
+	m1 := emu1.mem.Read16(0x6E95)
+	m2 := emu2.mem.Read16(0x6E95)
 	if m1 != m2 {
 		t.Errorf("marker mismatch: order1=0x%04X, order2=0x%04X", m1, m2)
 	}
@@ -471,7 +471,7 @@ func TestStartRealBIOSFastBoot(t *testing.T) {
 		t.Errorf("SR = 0x%04X, want 0x%04X", regs.SR, wantSR)
 	}
 	// Config marker should be set
-	marker := uint16(emu.mem.Read(tlcs900h.Word, 0x6E95))
+	marker := emu.mem.Read16(0x6E95)
 	if marker != 0x4E50 {
 		t.Errorf("$6E95 = 0x%04X, want 0x4E50", marker)
 	}
@@ -489,7 +489,7 @@ func TestFastBootPrecedenceOverFirstBoot(t *testing.T) {
 		t.Errorf("PC = 0x%06X, want 0xFF1BFC (fast boot overrides first_boot)", regs.PC)
 	}
 	// Config marker should be set (fast_boot skips first_boot zeroing)
-	marker := uint16(emu.mem.Read(tlcs900h.Word, 0x6E95))
+	marker := emu.mem.Read16(0x6E95)
 	if marker != 0x4E50 {
 		t.Errorf("$6E95 = 0x%04X, want 0x4E50", marker)
 	}

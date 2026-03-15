@@ -54,7 +54,7 @@ func TestCPI_Word(t *testing.T) {
 	c.reg.WriteReg16(0, 0x1234) // WA = 0x1234
 	c.reg.WriteReg32(3, 0x2000) // XHL = pointer
 	c.reg.WriteReg16(1, 3)      // BC = 3
-	bus.Write(Word, 0x2000, 0x1234)
+	bus.Write16(0x2000, 0x1234)
 
 	c.Step()
 

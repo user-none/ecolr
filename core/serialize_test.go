@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/user-none/eblitui/coreif"
-	"github.com/user-none/ecolr/core/tlcs900h"
 )
 
 // makeSerializeEmulator creates an emulator suitable for serialization tests.
@@ -63,10 +62,10 @@ func TestSerializeRoundTrip(t *testing.T) {
 	emu.RunFrame()
 
 	// Set some distinctive memory values
-	emu.mem.Write(tlcs900h.Byte, 0x4000, 0xAB) // work RAM
-	emu.mem.Write(tlcs900h.Byte, 0x4001, 0xCD)
-	emu.mem.Write(tlcs900h.Byte, 0xA2, 0xF0) // DAC left
-	emu.mem.Write(tlcs900h.Byte, 0xA3, 0x0F) // DAC right
+	emu.mem.Write8(0x4000, 0xAB) // work RAM
+	emu.mem.Write8(0x4001, 0xCD)
+	emu.mem.Write8(0xA2, 0xF0) // DAC left
+	emu.mem.Write8(0xA3, 0x0F) // DAC right
 
 	// Capture state
 	data, err := emu.Serialize()
@@ -84,8 +83,8 @@ func TestSerializeRoundTrip(t *testing.T) {
 
 	// Modify state
 	emu.RunFrame()
-	emu.mem.Write(tlcs900h.Byte, 0x4000, 0x00)
-	emu.mem.Write(tlcs900h.Byte, 0xA2, 0x80)
+	emu.mem.Write8(0x4000, 0x00)
+	emu.mem.Write8(0xA2, 0x80)
 
 	// Restore state
 	err = emu.Deserialize(data)

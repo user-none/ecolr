@@ -149,7 +149,7 @@ func (h *hleBIOS) initVectorTable(mem *Memory) {
 	retiAddr := uint32(hleBIOSBase + hleRETIHandler)
 	for i := 0; i < 18; i++ {
 		addr := uint32(0x6FB8) + uint32(i)*4
-		mem.Write(tlcs900h.Long, addr, retiAddr)
+		mem.Write32(addr, retiAddr)
 	}
 }
 
@@ -173,7 +173,7 @@ func (h *hleBIOS) dispatch(c *tlcs900h.CPU) {
 		}
 		// Pop return address (4 bytes pushed by CALL).
 		regs := c.Registers()
-		regs.PC = h.mem.Read(tlcs900h.Long, regs.XSP) & 0xFFFFFF
+		regs.PC = h.mem.Read32(regs.XSP) & 0xFFFFFF
 		regs.XSP += 4
 		c.SetState(regs)
 	case addr >= hleBIOSBase+hleIntBase && addr < hleBIOSBase+hleIntBase+hleIntCount:
@@ -234,7 +234,7 @@ func (h *hleBIOS) hleIntDispatch(c *tlcs900h.CPU, vectorOffset int) {
 		return
 	}
 
-	handler := h.mem.Read(tlcs900h.Long, ramAddr) & 0xFFFFFF
+	handler := h.mem.Read32(ramAddr) & 0xFFFFFF
 	defaultHandler := uint32(hleBIOSBase + hleRETIHandler)
 	if handler == 0 || handler == defaultHandler {
 		c.RETI()
@@ -257,11 +257,11 @@ func (h *hleBIOS) hleVBlankHousekeeping() {
 	// (previous state) and stores the result in $6F82.
 	// $6C5F keeps the previous value for next-frame comparison.
 	raw := h.mem.readIOByte(0xB0)
-	h.mem.Write(tlcs900h.Byte, 0x6F82, uint32(raw&0x7F))
-	h.mem.Write(tlcs900h.Byte, 0x6C5F, uint32(raw))
+	h.mem.Write8(0x6F82, raw&0x7F)
+	h.mem.Write8(0x6C5F, raw)
 
 	// Battery voltage: report full battery
-	h.mem.Write(tlcs900h.Word, 0x6F80, 0x03FF)
+	h.mem.Write16(0x6F80, 0x03FF)
 
 	// Service watchdog (write $4E to WDCR)
 	h.mem.writeIOByte(0x6F, 0x4E)
@@ -292,7 +292,7 @@ func toBCD(v int) uint8 {
 
 // $00: Shutdown - halt the CPU.
 func (h *hleBIOS) hleSysShutdown(c *tlcs900h.CPU) {
-	h.mem.Write(tlcs900h.Byte, 0xB6, 0x50)
+	h.mem.Write8(0xB6, 0x50)
 	c.Halt()
 	c.AddCycles(1)
 }
@@ -312,14 +312,14 @@ func (h *hleBIOS) hleSysRTCGet(c *tlcs900h.CPU) {
 	ptr := c.ReadBank3XHL()
 	now := time.Now()
 
-	h.mem.Write(tlcs900h.Byte, ptr+0, uint32(toBCD(now.Year()%100)))
-	h.mem.Write(tlcs900h.Byte, ptr+1, uint32(toBCD(int(now.Month()))))
-	h.mem.Write(tlcs900h.Byte, ptr+2, uint32(toBCD(now.Day())))
-	h.mem.Write(tlcs900h.Byte, ptr+3, uint32(toBCD(now.Hour())))
-	h.mem.Write(tlcs900h.Byte, ptr+4, uint32(toBCD(now.Minute())))
-	h.mem.Write(tlcs900h.Byte, ptr+5, uint32(toBCD(now.Second())))
-	leapYears := uint32(now.Year() % 4)
-	h.mem.Write(tlcs900h.Byte, ptr+6, leapYears<<4|uint32(now.Weekday()))
+	h.mem.Write8(ptr+0, toBCD(now.Year()%100))
+	h.mem.Write8(ptr+1, toBCD(int(now.Month())))
+	h.mem.Write8(ptr+2, toBCD(now.Day()))
+	h.mem.Write8(ptr+3, toBCD(now.Hour()))
+	h.mem.Write8(ptr+4, toBCD(now.Minute()))
+	h.mem.Write8(ptr+5, toBCD(now.Second()))
+	leapYears := uint8(now.Year() % 4)
+	h.mem.Write8(ptr+6, leapYears<<4|uint8(now.Weekday()))
 	c.AddCycles(1)
 }
 
@@ -379,8 +379,8 @@ func (h *hleBIOS) hleSysFlashWrite(c *tlcs900h.CPU) {
 		if int(destOffset+i) >= len(data) {
 			break
 		}
-		val := h.mem.Read(tlcs900h.Byte, srcAddr+i)
-		data[destOffset+i] = uint8(val)
+		val := h.mem.Read8(srcAddr + i)
+		data[destOffset+i] = val
 	}
 
 	c.WriteBank3RA(0x00)
@@ -483,13 +483,13 @@ func (h *hleBIOS) hleSysComGetData(c *tlcs900h.CPU) {
 
 // $15: ComOnRTS - write $00 to $B2.
 func (h *hleBIOS) hleSysComOnRTS(c *tlcs900h.CPU) {
-	h.mem.Write(tlcs900h.Byte, 0xB2, 0x00)
+	h.mem.Write8(0xB2, 0x00)
 	c.AddCycles(1)
 }
 
 // $16: ComOffRTS - write $01 to $B2.
 func (h *hleBIOS) hleSysComOffRTS(c *tlcs900h.CPU) {
-	h.mem.Write(tlcs900h.Byte, 0xB2, 0x01)
+	h.mem.Write8(0xB2, 0x01)
 	c.AddCycles(1)
 }
 

@@ -39,7 +39,7 @@ func DumpExitState(mem *core.Memory, c *tlcs900h.CPU, dumpPath string) {
 	}
 	for i := 0; i < 11; i++ {
 		addr := uint32(0x70 + i)
-		val := mem.Read(1, addr)
+		val := mem.Read8(addr)
 		fmt.Printf("  $%02X %-8s = $%02X\n", addr, intcNames[i], val)
 	}
 
@@ -58,7 +58,7 @@ func DumpExitState(mem *core.Memory, c *tlcs900h.CPU, dumpPath string) {
 		{0x38, "T4MOD"}, {0x39, "T4FFCR"}, {0x3A, "T45CR"},
 	}
 	for _, tr := range timerRegs {
-		val := mem.Read(1, tr.addr)
+		val := mem.Read8(tr.addr)
 		fmt.Printf("  $%02X %-8s = $%02X\n", tr.addr, tr.name, val)
 	}
 
@@ -73,7 +73,7 @@ func DumpExitState(mem *core.Memory, c *tlcs900h.CPU, dumpPath string) {
 		{0xB3, "NMICFG"}, {0xB8, "SNDEN"}, {0xB9, "Z80EN"},
 	}
 	for _, ir := range ioRegs {
-		val := mem.Read(1, ir.addr)
+		val := mem.Read8(ir.addr)
 		fmt.Printf("  $%02X %-8s = $%02X\n", ir.addr, ir.name, val)
 	}
 
@@ -100,7 +100,7 @@ func DumpExitState(mem *core.Memory, c *tlcs900h.CPU, dumpPath string) {
 		{0x6FF8, "DMA2"}, {0x6FFC, "DMA3"},
 	}
 	for _, v := range vecNames {
-		handler := mem.Read(4, v.addr)
+		handler := mem.Read32(v.addr)
 		fmt.Printf("  $%04X %-12s -> $%06X\n", v.addr, v.name, handler)
 	}
 
@@ -124,7 +124,7 @@ func DumpMemHex(mem *core.Memory, addr uint32, length int) {
 	for off := 0; off < length; off += 16 {
 		fmt.Printf("  $%06X:", addr+uint32(off))
 		for i := 0; i < 16 && off+i < length; i++ {
-			val := mem.Read(1, addr+uint32(off+i))
+			val := mem.Read8(addr + uint32(off+i))
 			fmt.Printf(" %02X", val)
 		}
 		fmt.Println()
@@ -149,8 +149,7 @@ func WriteBinaryDump(mem *core.Memory, path string) {
 	var buf []byte
 	for _, r := range regions {
 		for i := 0; i < r.size; i++ {
-			val := mem.Read(1, r.start+uint32(i))
-			buf = append(buf, uint8(val))
+			buf = append(buf, mem.Read8(r.start+uint32(i)))
 		}
 	}
 

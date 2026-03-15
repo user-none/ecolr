@@ -179,7 +179,7 @@ func TestCALL16(t *testing.T) {
 	checkReg32(t, "PC", c.reg.PC, 0x008000)
 	// Return address (0x1003) should be pushed on stack
 	checkReg32(t, "XSP", c.reg.XSP, origSP-4)
-	retAddr := bus.Read(Long, c.reg.XSP)
+	retAddr := bus.Read32(c.reg.XSP)
 	checkReg32(t, "return addr", retAddr, 0x1003)
 	if cycles != 9 {
 		t.Errorf("cycles = %d, want 9", cycles)
@@ -197,7 +197,7 @@ func TestCALL24(t *testing.T) {
 	cycles := c.Step()
 	checkReg32(t, "PC", c.reg.PC, 0x123456)
 	checkReg32(t, "XSP", c.reg.XSP, origSP-4)
-	retAddr := bus.Read(Long, c.reg.XSP)
+	retAddr := bus.Read32(c.reg.XSP)
 	checkReg32(t, "return addr", retAddr, 0x1004)
 	if cycles != 10 {
 		t.Errorf("cycles = %d, want 10", cycles)
@@ -214,7 +214,7 @@ func TestCALL_CC_Mem_True(t *testing.T) {
 	cycles := c.Step()
 	checkReg32(t, "PC", c.reg.PC, 0x005000)
 	checkReg32(t, "XSP", c.reg.XSP, origSP-4)
-	retAddr := bus.Read(Long, c.reg.XSP)
+	retAddr := bus.Read32(c.reg.XSP)
 	checkReg32(t, "return addr", retAddr, 0x1002)
 	if cycles != 12 {
 		t.Errorf("cycles = %d, want 12", cycles)
@@ -248,7 +248,7 @@ func TestCALR(t *testing.T) {
 	cycles := c.Step()
 	checkReg32(t, "PC", c.reg.PC, 0x1103)
 	checkReg32(t, "XSP", c.reg.XSP, origSP-4)
-	retAddr := bus.Read(Long, c.reg.XSP)
+	retAddr := bus.Read32(c.reg.XSP)
 	checkReg32(t, "return addr", retAddr, 0x1003)
 	if cycles != 10 {
 		t.Errorf("cycles = %d, want 10", cycles)
@@ -266,7 +266,7 @@ func TestCALR_Negative(t *testing.T) {
 	cycles := c.Step()
 	checkReg32(t, "PC", c.reg.PC, 0x0F03)
 	checkReg32(t, "XSP", c.reg.XSP, origSP-4)
-	retAddr := bus.Read(Long, c.reg.XSP)
+	retAddr := bus.Read32(c.reg.XSP)
 	checkReg32(t, "return addr", retAddr, 0x1003)
 	if cycles != 10 {
 		t.Errorf("cycles = %d, want 10", cycles)
@@ -365,8 +365,8 @@ func TestRETI(t *testing.T) {
 	origSP := c.reg.XSP
 	// Write SR value with some flags set (Z and C)
 	sr := srMAX | srSYSM | (5 << srIFFShift) | uint16(flagZ|flagC)
-	bus.Write(Word, origSP-6, uint32(sr))
-	bus.Write(Long, origSP-4, 0x005000)
+	bus.Write16(origSP-6, sr)
+	bus.Write32(origSP-4, 0x005000)
 	c.reg.XSP = origSP - 6
 
 	cycles := c.Step()
@@ -392,8 +392,8 @@ func TestRETI_DecrementsIntNest(t *testing.T) {
 
 	origSP := c.reg.XSP
 	sr := srMAX | srSYSM | (3 << srIFFShift)
-	bus.Write(Word, origSP-6, uint32(sr))
-	bus.Write(Long, origSP-4, 0x005000)
+	bus.Write16(origSP-6, sr)
+	bus.Write32(origSP-4, 0x005000)
 	c.reg.XSP = origSP - 6
 
 	c.Step()
@@ -411,8 +411,8 @@ func TestRETI_IntNestNoUnderflow(t *testing.T) {
 
 	origSP := c.reg.XSP
 	sr := srMAX | srSYSM
-	bus.Write(Word, origSP-6, uint32(sr))
-	bus.Write(Long, origSP-4, 0x005000)
+	bus.Write16(origSP-6, sr)
+	bus.Write32(origSP-4, 0x005000)
 	c.reg.XSP = origSP - 6
 
 	c.Step()

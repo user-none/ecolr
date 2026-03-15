@@ -148,7 +148,7 @@ func TestADD_MemReg_Byte(t *testing.T) {
 	bus.write8(0x2000, 0x10)             // mem = 0x10
 	c.reg.WriteReg8(r8From3bit[1], 0x05) // A = 0x05
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x15 {
 		t.Errorf("(mem) = 0x%02X, want 0x15", got)
 	}
@@ -159,9 +159,9 @@ func TestADD_MemImm_Word(t *testing.T) {
 	// op2 = 0x38 = ADD<W> (mem),#
 	c, bus := setupMemOp(t, 0x90, 0x38, 0x00, 0x10) // imm16 = 0x1000
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x2000)
+	bus.Write16(0x2000, 0x2000)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0x3000 {
 		t.Errorf("(mem) = 0x%04X, want 0x3000", got)
 	}
@@ -369,9 +369,9 @@ func TestINC_Mem_Word(t *testing.T) {
 	// Prefix 0x90 = word (R0) indirect, op2 = 0x62 (INC 2)
 	c, bus := setupMemOp(t, 0x90, 0x62)
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x1000)
+	bus.Write16(0x2000, 0x1000)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0x1002 {
 		t.Errorf("(mem) = 0x%04X, want 0x1002", got)
 	}
@@ -830,10 +830,10 @@ func TestMULA_Basic(t *testing.T) {
 	c.reg.WriteReg32(0, 100)
 	// XDE points to memory with signed word value 3
 	c.reg.WriteReg32(2, 0x3000)
-	bus.Write(Word, 0x3000, 3)
+	bus.Write16(0x3000, 3)
 	// XHL points to memory with signed word value 5
 	c.reg.WriteReg32(3, 0x4000)
-	bus.Write(Word, 0x4000, 5)
+	bus.Write16(0x4000, 5)
 	c.Step()
 	// 100 + 3*5 = 115
 	checkReg32(t, "XWA", c.reg.ReadReg32(0), 115)
@@ -846,9 +846,9 @@ func TestMULA_SignedMemory(t *testing.T) {
 	c, bus := setupRegOp(t, 0xD8, 0x19)
 	c.reg.WriteReg32(0, 0) // XWA = 0 accumulator
 	c.reg.WriteReg32(2, 0x3000)
-	bus.Write(Word, 0x3000, 0xFFFC) // (XDE) = -4 as uint16
+	bus.Write16(0x3000, 0xFFFC) // (XDE) = -4 as uint16
 	c.reg.WriteReg32(3, 0x4000)
-	bus.Write(Word, 0x4000, 0xFFFD) // (XHL) = -3 as uint16
+	bus.Write16(0x4000, 0xFFFD) // (XHL) = -3 as uint16
 	c.Step()
 	// 0 + (-4)*(-3) = 12
 	checkReg32(t, "XWA", c.reg.ReadReg32(0), 12)
@@ -859,9 +859,9 @@ func TestMULA_FlagsPreserved(t *testing.T) {
 	c, bus := setupRegOp(t, 0xD8, 0x19)
 	c.reg.WriteReg32(0, 0) // accumulator = 0
 	c.reg.WriteReg32(2, 0x3000)
-	bus.Write(Word, 0x3000, 1)
+	bus.Write16(0x3000, 1)
 	c.reg.WriteReg32(3, 0x4000)
-	bus.Write(Word, 0x4000, 0) // 0 + 1*0 = 0 => Z=1
+	bus.Write16(0x4000, 0) // 0 + 1*0 = 0 => Z=1
 	// Set H, N, C before
 	c.setFlag(flagH, true)
 	c.setFlag(flagN, true)
@@ -874,9 +874,9 @@ func TestMULA_Cycles(t *testing.T) {
 	c, bus := setupRegOp(t, 0xD8, 0x19)
 	c.reg.WriteReg32(0, 0)
 	c.reg.WriteReg32(2, 0x3000)
-	bus.Write(Word, 0x3000, 0)
+	bus.Write16(0x3000, 0)
 	c.reg.WriteReg32(3, 0x4000)
-	bus.Write(Word, 0x4000, 0)
+	bus.Write16(0x4000, 0)
 	cycles := c.Step()
 	if cycles != 19 {
 		t.Errorf("MULA cycles = %d, want 19", cycles)
@@ -1014,7 +1014,7 @@ func TestADD_MemReg_Cycles_Byte(t *testing.T) {
 func TestADD_MemImm_Cycles_Word(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x38, 0x00, 0x00) // word, ADD<W> (mem),#
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0)
+	bus.Write16(0x2000, 0)
 	cycles := c.Step()
 	if cycles != 8 {
 		t.Errorf("ADD<W> (mem),# word cycles = %d, want 8", cycles)
@@ -1024,7 +1024,7 @@ func TestADD_MemImm_Cycles_Word(t *testing.T) {
 func TestINC_Mem_Cycles(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x61)
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0)
+	bus.Write16(0x2000, 0)
 	cycles := c.Step()
 	if cycles != 6 {
 		t.Errorf("INC<W> (mem) cycles = %d, want 6", cycles)
@@ -1034,7 +1034,7 @@ func TestINC_Mem_Cycles(t *testing.T) {
 func TestDEC_Mem_Cycles(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x69)
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 1)
+	bus.Write16(0x2000, 1)
 	cycles := c.Step()
 	if cycles != 6 {
 		t.Errorf("DEC<W> (mem) cycles = %d, want 6", cycles)

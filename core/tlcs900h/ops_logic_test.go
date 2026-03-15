@@ -92,7 +92,7 @@ func TestAND_MemReg_Byte(t *testing.T) {
 	bus.write8(0x2000, 0xFF)
 	c.reg.WriteReg8(r8From3bit[1], 0x0F)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x0F {
 		t.Errorf("(mem) = 0x%02X, want 0x0F", got)
 	}
@@ -106,7 +106,7 @@ func TestAND_MemImm_Byte(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0xAB)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x0B {
 		t.Errorf("(mem) = 0x%02X, want 0x0B", got)
 	}
@@ -116,9 +116,9 @@ func TestAND_MemImm_Byte(t *testing.T) {
 func TestAND_MemImm_Word(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x3C, 0xFF, 0x00) // word indirect R0, AND<W> (mem),#0x00FF
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0x1234)
+	bus.Write16(0x2000, 0x1234)
 	c.Step()
-	got := bus.Read(Word, 0x2000)
+	got := bus.Read16(0x2000)
 	if got != 0x0034 {
 		t.Errorf("(mem) = 0x%04X, want 0x0034", got)
 	}
@@ -185,7 +185,7 @@ func TestXOR_MemReg_Byte(t *testing.T) {
 	bus.write8(0x2000, 0xAA)
 	c.reg.WriteReg8(r8From3bit[1], 0xFF)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x55 {
 		t.Errorf("(mem) = 0x%02X, want 0x55", got)
 	}
@@ -198,7 +198,7 @@ func TestXOR_MemImm_Byte(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x55)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0xAA {
 		t.Errorf("(mem) = 0x%02X, want 0xAA", got)
 	}
@@ -263,7 +263,7 @@ func TestOR_MemReg_Byte(t *testing.T) {
 	bus.write8(0x2000, 0xF0)
 	c.reg.WriteReg8(r8From3bit[1], 0x0F)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0xFF {
 		t.Errorf("(mem) = 0x%02X, want 0xFF", got)
 	}
@@ -276,7 +276,7 @@ func TestOR_MemImm_Byte(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0xA0)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0xAF {
 		t.Errorf("(mem) = 0x%02X, want 0xAF", got)
 	}
@@ -349,7 +349,7 @@ func TestAND_MemImm_Cycles_Byte(t *testing.T) {
 func TestAND_MemImm_Cycles_Word(t *testing.T) {
 	c, bus := setupMemOp(t, 0x90, 0x3C, 0x00, 0x00)
 	c.reg.WriteReg32(0, 0x2000)
-	bus.Write(Word, 0x2000, 0)
+	bus.Write16(0x2000, 0)
 	cycles := c.Step()
 	if cycles != 8 {
 		t.Errorf("AND (mem),# word cycles = %d, want 8", cycles)
@@ -435,7 +435,7 @@ func TestCHG_Mem_AfterWrap(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x00)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x02 {
 		t.Errorf("CHG #1,(mem) after wrap: got 0x%02X, want 0x02", got)
 	}

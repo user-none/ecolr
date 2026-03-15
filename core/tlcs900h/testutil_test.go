@@ -8,34 +8,37 @@ type testBus struct {
 	mem [16 * 1024 * 1024]byte
 }
 
-func (b *testBus) Read(sz Size, addr uint32) uint32 {
-	addr &= 0xFFFFFF
-	switch sz {
-	case Byte:
-		return uint32(b.mem[addr])
-	case Word:
-		return uint32(b.mem[addr]) | uint32(b.mem[addr+1])<<8
-	case Long:
-		return uint32(b.mem[addr]) | uint32(b.mem[addr+1])<<8 |
-			uint32(b.mem[addr+2])<<16 | uint32(b.mem[addr+3])<<24
-	}
-	return 0
+func (b *testBus) Read8(addr uint32) uint8 {
+	return b.mem[addr&0xFFFFFF]
 }
 
-func (b *testBus) Write(sz Size, addr uint32, val uint32) {
+func (b *testBus) Read16(addr uint32) uint16 {
 	addr &= 0xFFFFFF
-	switch sz {
-	case Byte:
-		b.mem[addr] = uint8(val)
-	case Word:
-		b.mem[addr] = uint8(val)
-		b.mem[addr+1] = uint8(val >> 8)
-	case Long:
-		b.mem[addr] = uint8(val)
-		b.mem[addr+1] = uint8(val >> 8)
-		b.mem[addr+2] = uint8(val >> 16)
-		b.mem[addr+3] = uint8(val >> 24)
-	}
+	return uint16(b.mem[addr]) | uint16(b.mem[addr+1])<<8
+}
+
+func (b *testBus) Read32(addr uint32) uint32 {
+	addr &= 0xFFFFFF
+	return uint32(b.mem[addr]) | uint32(b.mem[addr+1])<<8 |
+		uint32(b.mem[addr+2])<<16 | uint32(b.mem[addr+3])<<24
+}
+
+func (b *testBus) Write8(addr uint32, val uint8) {
+	b.mem[addr&0xFFFFFF] = val
+}
+
+func (b *testBus) Write16(addr uint32, val uint16) {
+	addr &= 0xFFFFFF
+	b.mem[addr] = uint8(val)
+	b.mem[addr+1] = uint8(val >> 8)
+}
+
+func (b *testBus) Write32(addr uint32, val uint32) {
+	addr &= 0xFFFFFF
+	b.mem[addr] = uint8(val)
+	b.mem[addr+1] = uint8(val >> 8)
+	b.mem[addr+2] = uint8(val >> 16)
+	b.mem[addr+3] = uint8(val >> 24)
 }
 
 func (b *testBus) Reset() {}

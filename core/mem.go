@@ -179,62 +179,171 @@ func (m *Memory) resetK2GERegisters() {
 	m.k2ge[0x0402] = 0x80 // LED_FLC: LED flash control
 }
 
-// Read returns a value of the given size from the specified address.
-// Multi-byte reads use little-endian byte order.
-func (m *Memory) Read(op tlcs900h.Size, addr uint32) uint32 {
+// Read8 returns a byte from the specified address.
+func (m *Memory) Read8(addr uint32) uint8 {
 	switch {
 	case addr <= 0x0000FF:
-		return m.readIO(op, addr)
+		return m.readIOByte(addr)
 	case addr >= workRAMStart && addr <= workRAMEnd:
-		return readLE(m.workRAM[:], addr-workRAMStart, op)
+		return m.workRAM[addr-workRAMStart]
 	case addr >= z80RAMStart && addr <= z80RAMEnd:
-		return readLE(m.z80RAM[:], addr-z80RAMStart, op)
+		return m.z80RAM[addr-z80RAMStart]
 	case addr >= k2geStart && addr <= k2geEnd:
-		return m.readK2GE(op, addr-k2geStart)
+		return m.readK2GEByte(addr - k2geStart)
 	case addr >= cartCS0Start && addr <= cartCS0End:
-		return m.readFlash(op, m.cs0, addr-cartCS0Start)
+		return m.readFlashByte(m.cs0, addr-cartCS0Start)
 	case addr >= cartCS1Start && addr <= cartCS1End:
-		return m.readFlash(op, m.cs1, addr-cartCS1Start)
+		return m.readFlashByte(m.cs1, addr-cartCS1Start)
 	case addr >= biosROMStart && addr <= biosROMEnd:
-		return readLE(m.bios, addr-biosROMStart, op)
+		return m.bios[addr-biosROMStart]
 	}
 	return 0
 }
 
-// Write stores a value of the given size at the specified address.
-// Multi-byte writes use little-endian byte order.
-func (m *Memory) Write(op tlcs900h.Size, addr uint32, val uint32) {
+// Read16 returns a 16-bit little-endian value from the specified address.
+func (m *Memory) Read16(addr uint32) uint16 {
 	switch {
 	case addr <= 0x0000FF:
-		m.writeIO(op, addr, val)
+		return uint16(m.readIOByte(addr)) | uint16(m.readIOByte(addr+1))<<8
 	case addr >= workRAMStart && addr <= workRAMEnd:
-		writeLE(m.workRAM[:], addr-workRAMStart, op, val)
+		off := addr - workRAMStart
+		return uint16(m.workRAM[off]) | uint16(m.workRAM[off+1])<<8
 	case addr >= z80RAMStart && addr <= z80RAMEnd:
-		writeLE(m.z80RAM[:], addr-z80RAMStart, op, val)
+		off := addr - z80RAMStart
+		return uint16(m.z80RAM[off]) | uint16(m.z80RAM[off+1])<<8
 	case addr >= k2geStart && addr <= k2geEnd:
-		m.writeK2GE(op, addr-k2geStart, val)
+		off := addr - k2geStart
+		return uint16(m.readK2GEByte(off)) | uint16(m.readK2GEByte(off+1))<<8
 	case addr >= cartCS0Start && addr <= cartCS0End:
-		m.writeFlash(op, m.cs0, addr-cartCS0Start, val)
+		off := addr - cartCS0Start
+		return uint16(m.readFlashByte(m.cs0, off)) | uint16(m.readFlashByte(m.cs0, off+1))<<8
 	case addr >= cartCS1Start && addr <= cartCS1End:
-		m.writeFlash(op, m.cs1, addr-cartCS1Start, val)
+		off := addr - cartCS1Start
+		return uint16(m.readFlashByte(m.cs1, off)) | uint16(m.readFlashByte(m.cs1, off+1))<<8
+	case addr >= biosROMStart && addr <= biosROMEnd:
+		off := addr - biosROMStart
+		return uint16(m.bios[off]) | uint16(m.bios[off+1])<<8
+	}
+	return 0
+}
+
+// Read32 returns a 32-bit little-endian value from the specified address.
+func (m *Memory) Read32(addr uint32) uint32 {
+	switch {
+	case addr <= 0x0000FF:
+		return uint32(m.readIOByte(addr)) | uint32(m.readIOByte(addr+1))<<8 |
+			uint32(m.readIOByte(addr+2))<<16 | uint32(m.readIOByte(addr+3))<<24
+	case addr >= workRAMStart && addr <= workRAMEnd:
+		off := addr - workRAMStart
+		return uint32(m.workRAM[off]) | uint32(m.workRAM[off+1])<<8 |
+			uint32(m.workRAM[off+2])<<16 | uint32(m.workRAM[off+3])<<24
+	case addr >= z80RAMStart && addr <= z80RAMEnd:
+		off := addr - z80RAMStart
+		return uint32(m.z80RAM[off]) | uint32(m.z80RAM[off+1])<<8 |
+			uint32(m.z80RAM[off+2])<<16 | uint32(m.z80RAM[off+3])<<24
+	case addr >= k2geStart && addr <= k2geEnd:
+		off := addr - k2geStart
+		return uint32(m.readK2GEByte(off)) | uint32(m.readK2GEByte(off+1))<<8 |
+			uint32(m.readK2GEByte(off+2))<<16 | uint32(m.readK2GEByte(off+3))<<24
+	case addr >= cartCS0Start && addr <= cartCS0End:
+		off := addr - cartCS0Start
+		return uint32(m.readFlashByte(m.cs0, off)) | uint32(m.readFlashByte(m.cs0, off+1))<<8 |
+			uint32(m.readFlashByte(m.cs0, off+2))<<16 | uint32(m.readFlashByte(m.cs0, off+3))<<24
+	case addr >= cartCS1Start && addr <= cartCS1End:
+		off := addr - cartCS1Start
+		return uint32(m.readFlashByte(m.cs1, off)) | uint32(m.readFlashByte(m.cs1, off+1))<<8 |
+			uint32(m.readFlashByte(m.cs1, off+2))<<16 | uint32(m.readFlashByte(m.cs1, off+3))<<24
+	case addr >= biosROMStart && addr <= biosROMEnd:
+		off := addr - biosROMStart
+		return uint32(m.bios[off]) | uint32(m.bios[off+1])<<8 |
+			uint32(m.bios[off+2])<<16 | uint32(m.bios[off+3])<<24
+	}
+	return 0
+}
+
+// Write8 stores a byte at the specified address.
+func (m *Memory) Write8(addr uint32, val uint8) {
+	switch {
+	case addr <= 0x0000FF:
+		m.writeIOByte(addr, val)
+	case addr >= workRAMStart && addr <= workRAMEnd:
+		m.workRAM[addr-workRAMStart] = val
+	case addr >= z80RAMStart && addr <= z80RAMEnd:
+		m.z80RAM[addr-z80RAMStart] = val
+	case addr >= k2geStart && addr <= k2geEnd:
+		m.writeK2GEByte(addr-k2geStart, val)
+	case addr >= cartCS0Start && addr <= cartCS0End:
+		m.writeFlashByte(m.cs0, addr-cartCS0Start, val)
+	case addr >= cartCS1Start && addr <= cartCS1End:
+		m.writeFlashByte(m.cs1, addr-cartCS1Start, val)
 	}
 }
 
-// readIO handles multi-byte reads from the I/O region ($00-$FF).
-// Each byte is read individually to support per-register behavior.
-func (m *Memory) readIO(op tlcs900h.Size, addr uint32) uint32 {
-	var val uint32
-	for i := tlcs900h.Size(0); i < op; i++ {
-		val |= uint32(m.readIOByte(addr+uint32(i))) << (i * 8)
+// Write16 stores a 16-bit little-endian value at the specified address.
+func (m *Memory) Write16(addr uint32, val uint16) {
+	switch {
+	case addr <= 0x0000FF:
+		m.writeIOByte(addr, uint8(val))
+		m.writeIOByte(addr+1, uint8(val>>8))
+	case addr >= workRAMStart && addr <= workRAMEnd:
+		off := addr - workRAMStart
+		m.workRAM[off] = uint8(val)
+		m.workRAM[off+1] = uint8(val >> 8)
+	case addr >= z80RAMStart && addr <= z80RAMEnd:
+		off := addr - z80RAMStart
+		m.z80RAM[off] = uint8(val)
+		m.z80RAM[off+1] = uint8(val >> 8)
+	case addr >= k2geStart && addr <= k2geEnd:
+		m.writeK2GE16(addr-k2geStart, val)
+	case addr >= cartCS0Start && addr <= cartCS0End:
+		off := addr - cartCS0Start
+		m.writeFlashByte(m.cs0, off, uint8(val))
+		m.writeFlashByte(m.cs0, off+1, uint8(val>>8))
+	case addr >= cartCS1Start && addr <= cartCS1End:
+		off := addr - cartCS1Start
+		m.writeFlashByte(m.cs1, off, uint8(val))
+		m.writeFlashByte(m.cs1, off+1, uint8(val>>8))
 	}
-	return val
 }
 
-// writeIO handles multi-byte writes to the I/O region ($00-$FF).
-// Each byte is written individually to support per-register behavior.
-func (m *Memory) writeIO(op tlcs900h.Size, addr uint32, val uint32) {
-	for i := tlcs900h.Size(0); i < op; i++ {
-		m.writeIOByte(addr+uint32(i), uint8(val>>(i*8)))
+// Write32 stores a 32-bit little-endian value at the specified address.
+func (m *Memory) Write32(addr uint32, val uint32) {
+	switch {
+	case addr <= 0x0000FF:
+		m.writeIOByte(addr, uint8(val))
+		m.writeIOByte(addr+1, uint8(val>>8))
+		m.writeIOByte(addr+2, uint8(val>>16))
+		m.writeIOByte(addr+3, uint8(val>>24))
+	case addr >= workRAMStart && addr <= workRAMEnd:
+		off := addr - workRAMStart
+		m.workRAM[off] = uint8(val)
+		m.workRAM[off+1] = uint8(val >> 8)
+		m.workRAM[off+2] = uint8(val >> 16)
+		m.workRAM[off+3] = uint8(val >> 24)
+	case addr >= z80RAMStart && addr <= z80RAMEnd:
+		off := addr - z80RAMStart
+		m.z80RAM[off] = uint8(val)
+		m.z80RAM[off+1] = uint8(val >> 8)
+		m.z80RAM[off+2] = uint8(val >> 16)
+		m.z80RAM[off+3] = uint8(val >> 24)
+	case addr >= k2geStart && addr <= k2geEnd:
+		off := addr - k2geStart
+		m.writeK2GEByte(off, uint8(val))
+		m.writeK2GEByte(off+1, uint8(val>>8))
+		m.writeK2GEByte(off+2, uint8(val>>16))
+		m.writeK2GEByte(off+3, uint8(val>>24))
+	case addr >= cartCS0Start && addr <= cartCS0End:
+		off := addr - cartCS0Start
+		m.writeFlashByte(m.cs0, off, uint8(val))
+		m.writeFlashByte(m.cs0, off+1, uint8(val>>8))
+		m.writeFlashByte(m.cs0, off+2, uint8(val>>16))
+		m.writeFlashByte(m.cs0, off+3, uint8(val>>24))
+	case addr >= cartCS1Start && addr <= cartCS1End:
+		off := addr - cartCS1Start
+		m.writeFlashByte(m.cs1, off, uint8(val))
+		m.writeFlashByte(m.cs1, off+1, uint8(val>>8))
+		m.writeFlashByte(m.cs1, off+2, uint8(val>>16))
+		m.writeFlashByte(m.cs1, off+3, uint8(val>>24))
 	}
 }
 
@@ -423,17 +532,17 @@ func (m *Memory) WriteK1GEPalettes(shades [8]uint32, index uint32) {
 	for _, base := range bases {
 		for group := uint32(0); group < 2; group++ {
 			for i, val := range shades {
-				m.Write(tlcs900h.Word, base+group*16+uint32(i)*2, val)
+				m.Write16(base+group*16+uint32(i)*2, uint16(val))
 			}
 		}
 	}
 
 	// Background and window colors default to white (shade 0).
-	m.Write(tlcs900h.Word, 0x83E0, 0x0FFF)
-	m.Write(tlcs900h.Word, 0x83F0, 0x0FFF)
+	m.Write16(0x83E0, 0x0FFF)
+	m.Write16(0x83F0, 0x0FFF)
 
 	// Update the BIOS palette index at $6F94.
-	m.Write(tlcs900h.Byte, 0x6F94, index)
+	m.Write8(0x6F94, uint8(index))
 }
 
 // Tick catches up peripheral state to the current CPU cycle count.
@@ -514,16 +623,6 @@ func (m *Memory) SetVBlankStatus(active bool) {
 	}
 }
 
-// readK2GE handles multi-byte reads from the K2GE register space.
-// Each byte is read individually to support per-register masking.
-func (m *Memory) readK2GE(op tlcs900h.Size, offset uint32) uint32 {
-	var val uint32
-	for i := tlcs900h.Size(0); i < op; i++ {
-		val |= uint32(m.readK2GEByte(offset+uint32(i))) << (i * 8)
-	}
-	return val
-}
-
 // readK2GEByte reads a single byte from a K2GE register with per-register
 // masking for unmapped or fixed bits.
 func (m *Memory) readK2GEByte(offset uint32) uint8 {
@@ -554,18 +653,16 @@ func (m *Memory) readK2GEByte(offset uint32) uint8 {
 	}
 }
 
-// writeK2GE handles multi-byte writes to the K2GE register space.
-// Each byte is written individually to support per-register access control.
-func (m *Memory) writeK2GE(op tlcs900h.Size, offset uint32, val uint32) {
-	// Palette RAM ($8200-$83FF): only word writes are valid
-	if op == 2 && offset >= 0x0200 && offset <= 0x03FE {
+// writeK2GE16 handles word writes to the K2GE register space.
+// Palette RAM ($8200-$83FF) requires word-size writes.
+func (m *Memory) writeK2GE16(offset uint32, val uint16) {
+	if offset >= 0x0200 && offset <= 0x03FE {
 		m.k2ge[offset] = uint8(val)
 		m.k2ge[offset+1] = uint8(val >> 8)
 		return
 	}
-	for i := tlcs900h.Size(0); i < op; i++ {
-		m.writeK2GEByte(offset+uint32(i), uint8(val>>(i*8)))
-	}
+	m.writeK2GEByte(offset, uint8(val))
+	m.writeK2GEByte(offset+1, uint8(val>>8))
 }
 
 // writeK2GEByte writes a single byte to a K2GE register with access control.
@@ -617,54 +714,18 @@ func (m *Memory) VRAM() *[k2geSize]byte {
 	return &m.k2ge
 }
 
-// readFlash reads from a flash chip with multi-byte little-endian assembly.
-func (m *Memory) readFlash(op tlcs900h.Size, chip *Flash, offset uint32) uint32 {
+// readFlashByte reads a single byte from a flash chip.
+func (m *Memory) readFlashByte(chip *Flash, offset uint32) uint8 {
 	if chip == nil {
 		return 0
 	}
-	var val uint32
-	for i := tlcs900h.Size(0); i < op; i++ {
-		val |= uint32(chip.Read(offset+uint32(i))) << (i * 8)
-	}
-	return val
+	return chip.Read(offset)
 }
 
-// writeFlash writes to a flash chip with multi-byte little-endian decomposition.
-func (m *Memory) writeFlash(op tlcs900h.Size, chip *Flash, offset uint32, val uint32) {
+// writeFlashByte writes a single byte to a flash chip.
+func (m *Memory) writeFlashByte(chip *Flash, offset uint32, val uint8) {
 	if chip == nil {
 		return
 	}
-	for i := tlcs900h.Size(0); i < op; i++ {
-		chip.Write(offset+uint32(i), uint8(val>>(i*8)))
-	}
-}
-
-// readLE reads a little-endian value of the given size from data at offset.
-func readLE(data []byte, offset uint32, sz tlcs900h.Size) uint32 {
-	switch sz {
-	case tlcs900h.Byte:
-		return uint32(data[offset])
-	case tlcs900h.Word:
-		return uint32(data[offset]) | uint32(data[offset+1])<<8
-	case tlcs900h.Long:
-		return uint32(data[offset]) | uint32(data[offset+1])<<8 |
-			uint32(data[offset+2])<<16 | uint32(data[offset+3])<<24
-	}
-	return 0
-}
-
-// writeLE writes a little-endian value of the given size to data at offset.
-func writeLE(data []byte, offset uint32, sz tlcs900h.Size, val uint32) {
-	switch sz {
-	case tlcs900h.Byte:
-		data[offset] = uint8(val)
-	case tlcs900h.Word:
-		data[offset] = uint8(val)
-		data[offset+1] = uint8(val >> 8)
-	case tlcs900h.Long:
-		data[offset] = uint8(val)
-		data[offset+1] = uint8(val >> 8)
-		data[offset+2] = uint8(val >> 16)
-		data[offset+3] = uint8(val >> 24)
-	}
+	chip.Write(offset, val)
 }

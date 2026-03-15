@@ -281,7 +281,7 @@ func TestPushPop(t *testing.T) {
 	checkReg32(t, "XSP after push", c.reg.XSP, 0x6FFC)
 
 	// Verify memory contents (little-endian)
-	got := bus.Read(Long, 0x6FFC)
+	got := bus.Read32(0x6FFC)
 	if got != 0xDEADBEEF {
 		t.Errorf("pushed value = 0x%08X, want 0xDEADBEEF", got)
 	}

@@ -272,12 +272,12 @@ func main() {
 			}
 
 			if *traceSound {
-				b9 := mem.Read(1, 0xB9)
-				b8 := mem.Read(1, 0xB8)
-				da2 := mem.Read(1, 0x6DA2)
-				da0 := mem.Read(1, 0x6DA0)
-				da1 := mem.Read(1, 0x6DA1)
-				bc := mem.Read(1, 0xBC)
+				b9 := mem.Read8(0xB9)
+				b8 := mem.Read8(0xB8)
+				da2 := mem.Read8(0x6DA2)
+				da0 := mem.Read8(0x6DA0)
+				da1 := mem.Read8(0x6DA1)
+				bc := mem.Read8(0xBC)
 				fmt.Printf("  [VBlank %d] step=%d B8=$%02X B9=$%02X $6DA2=$%02X head=$%02X tail=$%02X $BC=$%02X\n",
 					vblankNum, step, b8, b9, da2, da0, da1, bc)
 			}

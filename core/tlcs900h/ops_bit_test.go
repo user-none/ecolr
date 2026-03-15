@@ -414,7 +414,7 @@ func TestSET_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x00)
 	cycles := c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x04 {
 		t.Errorf("SET mem: got 0x%02X, want 0x04", got)
 	}
@@ -428,7 +428,7 @@ func TestRES_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0xFF)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0xDF {
 		t.Errorf("RES mem: got 0x%02X, want 0xDF", got)
 	}
@@ -439,7 +439,7 @@ func TestCHG_Mem(t *testing.T) {
 	c.reg.WriteReg32(0, 0x2000)
 	bus.write8(0x2000, 0x00)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x02 {
 		t.Errorf("CHG mem: got 0x%02X, want 0x02", got)
 	}
@@ -452,7 +452,7 @@ func TestTSET_Mem(t *testing.T) {
 	cycles := c.Step()
 	// Bit 2 was clear: Z=1, then bit 2 set
 	checkFlags(t, c, 0, 1, 1, -1, 0, -1)
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x04 {
 		t.Errorf("TSET mem: got 0x%02X, want 0x04", got)
 	}
@@ -516,7 +516,7 @@ func TestSTCF_Imm_Mem(t *testing.T) {
 	bus.write8(0x2000, 0x00)
 	c.setFlag(flagC, true)
 	cycles := c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x10 {
 		t.Errorf("STCF mem: got 0x%02X, want 0x10", got)
 	}
@@ -569,7 +569,7 @@ func TestSTCF_A_Mem(t *testing.T) {
 	bus.write8(0x2000, 0x00)
 	c.setFlag(flagC, true)
 	cycles := c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x08 {
 		t.Errorf("STCF A,mem: got 0x%02X, want 0x08", got)
 	}
@@ -586,7 +586,7 @@ func TestSTCF_A_Mem_OutOfRange(t *testing.T) {
 	bus.write8(0x2000, 0x55)
 	c.setFlag(flagC, true)
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x55 {
 		t.Errorf("STCF A,mem out-of-range: got 0x%02X, want 0x55 (unchanged)", got)
 	}
@@ -614,7 +614,7 @@ func TestADD_MemReg_AfterWrap(t *testing.T) {
 	bus.write8(0x2000, 0x10)             // mem = 0x10
 	c.reg.WriteReg8(r8From3bit[0], 0x05) // W = 0x05
 	c.Step()
-	got := bus.Read(Byte, 0x2000)
+	got := bus.Read8(0x2000)
 	if got != 0x15 {
 		t.Errorf("ADD (mem),R after wrap: got 0x%02X, want 0x15", got)
 	}

@@ -8,7 +8,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/user-none/eblitui/standalone"
+	"github.com/user-none/eblitui/desktop"
 	"github.com/user-none/ecolr/adapter"
 )
 
@@ -34,13 +34,13 @@ func main() {
 			}
 			biosMap = map[string][]byte{"system_bios": data}
 		}
-		if err := standalone.RunDirect(factory, *romPath, options, biosMap); err != nil {
+		if err := desktop.RunDirect(factory, *romPath, options, biosMap); err != nil {
 			log.Fatal(err)
 		}
 		return
 	}
 
-	if err := standalone.Run(factory); err != nil {
+	if err := desktop.Run(factory); err != nil {
 		log.Fatal(err)
 	}
 }

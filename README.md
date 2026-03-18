@@ -5,7 +5,7 @@ A Neo Geo Pocket / Neo Geo Pocket Color emulator written in Go.
 ## Project Overview
 
 The focus is on core emulation accuracy for officially licensed and released
-games. The standalone UI provides a game library with ROM scanning, artwork,
+games. The desktop UI provides a game library with ROM scanning, artwork,
 metadata, save state management, rewind, shader effects, RetroAchievements
 integration, and configurable settings.
 
@@ -41,10 +41,10 @@ This emulator targets the **Neo Geo Pocket Color** handheld console.
 
 Requires Go 1.25+.
 
-### Standalone Application
+### Desktop Application
 
 ```
-make standalone
+make desktop
 ```
 
 Produces `build/ecolr`.
@@ -61,7 +61,7 @@ Creates `build/ecolr.app` with icon and code signing.
 
 | Target | Description |
 |--------|-------------|
-| `make standalone` | Build standalone binary to `build/ecolr` |
+| `make desktop` | Build desktop binary to `build/ecolr` |
 | `make macos` | Build macOS .app bundle to `build/ecolr.app` |
 | `make icons` | Generate macOS icon from `assets/icon.png` |
 | `make clean` | Remove build directory |
@@ -193,7 +193,7 @@ The NGPC has no PAL variant.
 
 ```
 cmd/
-  standalone/          Standalone desktop entry point (Ebiten UI)
+  desktop/             Desktop entry point (Ebiten UI)
 adapter/
   adapter.go           CoreFactory: system info, emulator creation, region detection
 core/                  Core emulator (platform-independent)
@@ -253,7 +253,7 @@ Neo Geo Pocket Color games.
 ## Dependencies
 
 - [eblitui](https://github.com/user-none/eblitui) - shared emulator UI
-  framework (standalone)
+  framework (desktop)
 - [go-chip-z80](https://github.com/user-none/go-chip-z80) - Zilog Z80 CPU
 - [go-chip-sn76489](https://github.com/user-none/go-chip-sn76489) - T6W28
   PSG base

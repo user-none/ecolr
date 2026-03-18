@@ -67,8 +67,8 @@ github.com/user-none/eblitui-ios v0.4.0 h1:fSMGj5wjpX9++XBbreV5IKu7N/mLsgGhzTnSA
 github.com/user-none/eblitui-ios v0.4.0/go.mod h1:hlibIhrCZqF+U4FENEPTD4oMYFjVJKwYSdA3XC78YhA=
 github.com/user-none/eblitui/coreif v0.5.0 h1:uLK4rug/LZHJe3vtVSAsBT3GcjdsB3SY3gtuy7rxajk=
 github.com/user-none/eblitui/coreif v0.5.0/go.mod h1:NyEjTmsAHI3Zfterj6rlgZiFt++4ACfONQzCQaxJZ7E=
-github.com/user-none/eblitui/desktop v0.1.0 h1:0OalMt2aibCl/CDvUYX6ib8EbEgZjkw75Qmz5rX4fN4=
-github.com/user-none/eblitui/desktop v0.1.0/go.mod h1:R4LMZBD1037N8aAxwXXh2oMWKQ8tCODEUsJqLwZPsLA=
+github.com/user-none/eblitui/desktop v0.1.0 h1:J1j3EH73/puNIJ0rTcCRmdUkjCJSHeJfpTaowcNZJdg=
+github.com/user-none/eblitui/desktop v0.1.0/go.mod h1:lXRQmMDf2pfdbhNq02BKHhPmUNIt2pnjidu7uvYs0xI=
 github.com/user-none/eblitui/rdb v0.1.0 h1:/ZIzlkTTUqGaFtMT8HNgiHouJ/SMpRv+uUVbxJlDmZM=
 github.com/user-none/eblitui/rdb v0.1.0/go.mod h1:UyIx+HTKfiqL6246Qoe2vKvrhbJc73cBkRqpw6Db4AU=
 github.com/user-none/eblitui/romloader v0.2.0 h1:r97DR/7JMkA8TKeV4BsICc1KE85Otz1UaacOVOag3MM=

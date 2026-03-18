@@ -3,8 +3,6 @@ package core
 import (
 	"encoding/binary"
 	"testing"
-
-	"github.com/user-none/eblitui/coreif"
 )
 
 // makeSerializeEmulator creates an emulator suitable for serialization tests.
@@ -31,7 +29,7 @@ func makeSerializeEmulator(t *testing.T) Emulator {
 		cart[i] = uint8(i)
 	}
 
-	emu, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("makeSerializeEmulator: %v", err)
 	}

@@ -3,7 +3,6 @@ package core
 import (
 	"testing"
 
-	"github.com/user-none/eblitui/coreif"
 	"github.com/user-none/ecolr/core/tlcs900h"
 )
 
@@ -207,7 +206,7 @@ func TestHLEEmulatorCreation(t *testing.T) {
 	cart[0x1D] = 0xAB
 	cart[0x1E] = 0x20
 
-	emu, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -229,7 +228,7 @@ func TestHLEEmulatorCreation(t *testing.T) {
 func TestHLEEmulatorStep(t *testing.T) {
 	cart := make([]byte, 256)
 
-	emu, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -250,7 +249,7 @@ func TestRealBIOSEmulatorCreation(t *testing.T) {
 	bios[0xFF02] = 0xFF
 	bios[0xFF03] = 0x00
 
-	emu, err := NewEmulator(nil, coreif.RegionNTSC)
+	emu, err := NewEmulator(nil)
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}

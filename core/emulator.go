@@ -25,7 +25,7 @@ type Emulator struct {
 	z80CyclesPerScanlineFP int // Fixed-point 16.16 for Z80+PSG
 
 	// Timing
-	timing    RegionTiming
+	timing    VideoTiming
 	scanlines int
 
 	// Framebuffer: 160x152 RGBA
@@ -51,7 +51,7 @@ type Emulator struct {
 
 // NewEmulator creates and initializes the emulator components.
 // Call SetBIOS before Start() to use a real BIOS; otherwise HLE mode is used.
-func NewEmulator(rom []byte, region coreif.Region) (Emulator, error) {
+func NewEmulator(rom []byte) (Emulator, error) {
 	timing := NGPCTiming
 
 	samplesPerFrame := sampleRate / timing.FPS
@@ -268,16 +268,7 @@ func (e *Emulator) SetInput(player int, buttons uint32) {
 	e.mem.SetInput(packed)
 }
 
-// GetRegion returns NTSC. The NGPC has no PAL variant.
-func (e *Emulator) GetRegion() coreif.Region {
-	return coreif.RegionNTSC
-}
-
-// SetRegion is a no-op. The NGPC is NTSC-only.
-func (e *Emulator) SetRegion(region coreif.Region) {
-}
-
-// GetTiming returns FPS and scanline count for the current region.
+// GetTiming returns FPS and scanline count.
 func (e *Emulator) GetTiming() coreif.Timing {
 	return coreif.Timing{
 		FPS:       e.timing.FPS,

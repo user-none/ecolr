@@ -89,18 +89,12 @@ func (f *Factory) SystemInfo() coreif.SystemInfo {
 	}
 }
 
-// CreateEmulator creates a new emulator instance with the given ROM and region.
+// CreateEmulator creates a new emulator instance with the given ROM.
 // The emulator starts in HLE mode; call SetBIOS before Start() to use a real BIOS.
-func (f *Factory) CreateEmulator(rom []byte, region coreif.Region) (coreif.Emulator, error) {
-	e, err := core.NewEmulator(rom, region)
+func (f *Factory) CreateEmulator(rom []byte) (coreif.Emulator, error) {
+	e, err := core.NewEmulator(rom)
 	if err != nil {
 		return nil, err
 	}
 	return &e, nil
-}
-
-// DetectRegion returns the region for a ROM.
-// The NGPC is NTSC-only.
-func (f *Factory) DetectRegion(rom []byte) (coreif.Region, bool) {
-	return core.DetectRegion(rom), false
 }

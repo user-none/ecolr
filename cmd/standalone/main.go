@@ -34,7 +34,7 @@ func main() {
 			}
 			biosMap = map[string][]byte{"system_bios": data}
 		}
-		if err := standalone.RunDirect(factory, *romPath, "auto", options, biosMap); err != nil {
+		if err := standalone.RunDirect(factory, *romPath, options, biosMap); err != nil {
 			log.Fatal(err)
 		}
 		return

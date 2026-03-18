@@ -23,7 +23,7 @@ func makeTestEmulator(t *testing.T) Emulator {
 	bios[0x0010] = 0xC8
 	bios[0x0011] = 0xFE
 
-	emu, err := NewEmulator(nil, coreif.RegionNTSC)
+	emu, err := NewEmulator(nil)
 	if err != nil {
 		t.Fatalf("makeTestEmulator: %v", err)
 	}
@@ -105,7 +105,7 @@ func TestNewEmulatorDefaultNVRAMBoot(t *testing.T) {
 
 func TestSetOptionFirstBootHLE(t *testing.T) {
 	// HLE mode: first_boot option should be ignored by Start
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator HLE: %v", err)
 	}
@@ -144,7 +144,7 @@ func makeMinimalMonoCart() []byte {
 }
 
 func TestSetOptionMonoPaletteBW(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalMonoCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -166,7 +166,7 @@ func TestSetOptionMonoPaletteBW(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteBlue(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalMonoCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -186,7 +186,7 @@ func TestSetOptionMonoPaletteBlue(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteAllSchemes(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalMonoCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -214,7 +214,7 @@ func TestSetOptionMonoPaletteAllSchemes(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteInvalid(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalMonoCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -234,7 +234,7 @@ func TestSetOptionMonoPaletteInvalid(t *testing.T) {
 }
 
 func TestSetOptionLanguageEnglish(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -249,7 +249,7 @@ func TestSetOptionLanguageEnglish(t *testing.T) {
 }
 
 func TestSetOptionLanguageJapanese(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -264,7 +264,7 @@ func TestSetOptionLanguageJapanese(t *testing.T) {
 }
 
 func TestSetOptionLanguageChecksum(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -307,7 +307,7 @@ func TestSetOptionLanguageRealBIOSFastBoot(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteChecksum(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalMonoCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -386,7 +386,7 @@ func TestStartRealBIOSFirstBoot(t *testing.T) {
 
 func TestStartOrderIndependence(t *testing.T) {
 	// Order 1: language then palette
-	emu1, err := NewEmulator(makeMinimalMonoCart(), coreif.RegionNTSC)
+	emu1, err := NewEmulator(makeMinimalMonoCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -395,7 +395,7 @@ func TestStartOrderIndependence(t *testing.T) {
 	emu1.Start()
 
 	// Order 2: palette then language
-	emu2, err := NewEmulator(makeMinimalMonoCart(), coreif.RegionNTSC)
+	emu2, err := NewEmulator(makeMinimalMonoCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -443,7 +443,7 @@ func makeTestEmulatorWithCart(t *testing.T) Emulator {
 	bios[0x0011] = 0xFE
 
 	cart := makeMinimalCart()
-	emu, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("makeTestEmulatorWithCart: %v", err)
 	}
@@ -496,7 +496,7 @@ func TestFastBootPrecedenceOverFirstBoot(t *testing.T) {
 }
 
 func TestFastBootIgnoredInHLE(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -511,7 +511,7 @@ func TestFastBootIgnoredInHLE(t *testing.T) {
 }
 
 func TestGetSRAMNoChanges(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -534,7 +534,7 @@ func TestGetSetSRAMRoundTrip(t *testing.T) {
 	cart[0x1E] = 0x20
 	cart[0x1F] = 0x00
 
-	emu, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -551,7 +551,7 @@ func TestGetSetSRAMRoundTrip(t *testing.T) {
 	}
 
 	// Create a new emulator with the same ROM
-	emu2, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu2, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("NewEmulator 2: %v", err)
 	}
@@ -581,7 +581,7 @@ func TestSetSRAMResetsToOrig(t *testing.T) {
 	cart[0x1F] = 0x00
 	cart[0x50] = 0x42
 
-	emu, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -604,7 +604,7 @@ func TestReadWriteRegionDecoupled(t *testing.T) {
 	cart[0x1E] = 0x20
 	cart[0x1F] = 0x00
 
-	emu, err := NewEmulator(cart, coreif.RegionNTSC)
+	emu, err := NewEmulator(cart)
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -638,7 +638,7 @@ func TestReadWriteRegionDecoupled(t *testing.T) {
 }
 
 func TestMemoryMapSystemRAMSize(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}
@@ -661,7 +661,7 @@ func TestMemoryMapSystemRAMSize(t *testing.T) {
 }
 
 func TestReadWriteRegionSystemRAM(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart(), coreif.RegionNTSC)
+	emu, err := NewEmulator(makeMinimalCart())
 	if err != nil {
 		t.Fatalf("NewEmulator: %v", err)
 	}

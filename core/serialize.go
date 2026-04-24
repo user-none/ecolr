@@ -12,7 +12,7 @@ import (
 
 // Save state format constants
 const (
-	stateVersion    = 1
+	stateVersion    = 2
 	stateMagic      = "eColrSState\x00"
 	stateHeaderSize = 22 // magic(12) + version(2) + romCRC(4) + dataCRC(4)
 )
@@ -44,6 +44,9 @@ const (
 
 	// Memory.lastCycle: uint64 = 8
 	lastCycleSerializeSize = 8
+
+	// cpuAccumFP + z80AccumFP: two int32
+	scanlineAccumSerializeSize = 4 + 4
 )
 
 // SerializeSize returns the total size in bytes needed for a save state.
@@ -58,7 +61,8 @@ func SerializeSize() int {
 		timersSerializeSize +
 		rtcSerializeSize +
 		flashSerializeSize +
-		lastCycleSerializeSize
+		lastCycleSerializeSize +
+		scanlineAccumSerializeSize
 }
 
 // boolByte converts a bool to a uint8 (0 or 1).
@@ -120,6 +124,12 @@ func (e *Emulator) Serialize() ([]byte, error) {
 
 	// lastCycle
 	binary.LittleEndian.PutUint64(data[offset:], e.mem.lastCycle)
+	offset += 8
+
+	// Per-scanline Q16.16 accumulators (carry fractional cycles across frames)
+	binary.LittleEndian.PutUint32(data[offset:], uint32(e.cpuAccumFP))
+	offset += 4
+	binary.LittleEndian.PutUint32(data[offset:], uint32(e.z80AccumFP))
 
 	// Calculate and write data CRC32 (over everything after header)
 	dataCRC := crc32.ChecksumIEEE(data[stateHeaderSize:])
@@ -175,6 +185,12 @@ func (e *Emulator) Deserialize(data []byte) error {
 
 	// lastCycle
 	e.mem.lastCycle = binary.LittleEndian.Uint64(data[offset:])
+	offset += 8
+
+	// Per-scanline Q16.16 accumulators
+	e.cpuAccumFP = int(binary.LittleEndian.Uint32(data[offset:]))
+	offset += 4
+	e.z80AccumFP = int(binary.LittleEndian.Uint32(data[offset:]))
 
 	return nil
 }

@@ -24,6 +24,14 @@ type Emulator struct {
 	cpuCyclesPerScanline   int // Hardware constant (515)
 	z80CyclesPerScanlineFP int // Fixed-point 16.16 for Z80+PSG
 
+	// Per-scanline fixed-point (Q16.16) cycle residues. Persisted across
+	// frames so fractional cycles are never discarded — the TLCS-900/H and
+	// Z80 scanline ratios produce an alternating per-scanline cycle pattern
+	// whose residue at frame end is non-zero when scanline count is odd
+	// (as on NGPC, which has 199).
+	cpuAccumFP int
+	z80AccumFP int
+
 	// Timing
 	timing    VideoTiming
 	scanlines int
@@ -108,8 +116,6 @@ func (e *Emulator) RunFrame() {
 	e.psg.ResetBuffer()
 
 	prevPos := 0
-	var z80AccumFP int
-	var cpuAccumFP int
 	gearDiv := e.mem.ClockGearDivisor()
 	cpuPerScanlineFP := (e.cpuCyclesPerScanline << 16) / gearDiv
 
@@ -117,9 +123,9 @@ func (e *Emulator) RunFrame() {
 		e.mem.SetRasterPosition(i, e.cpuCyclesPerScanline)
 
 		// Run TLCS-900/H CPU for this scanline, scaled by clock gear
-		cpuAccumFP += cpuPerScanlineFP
-		budget := cpuAccumFP >> 16
-		cpuAccumFP &= 0xFFFF
+		e.cpuAccumFP += cpuPerScanlineFP
+		budget := e.cpuAccumFP >> 16
+		e.cpuAccumFP &= 0xFFFF
 		for budget > 0 {
 			budget -= e.cpu.StepCycles(budget)
 			e.mem.Tick()
@@ -142,9 +148,9 @@ func (e *Emulator) RunFrame() {
 		}
 
 		// Compute Z80 cycles for this scanline from fixed-point accumulator
-		z80AccumFP += e.z80CyclesPerScanlineFP
-		z80budget := z80AccumFP >> 16
-		z80AccumFP &= 0xFFFF
+		e.z80AccumFP += e.z80CyclesPerScanlineFP
+		z80budget := e.z80AccumFP >> 16
+		e.z80AccumFP &= 0xFFFF
 
 		// Run Z80 sound CPU and PSG in lockstep so that PSG register
 		// writes from the Z80 take effect at the correct audio sample

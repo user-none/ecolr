@@ -57,9 +57,19 @@ type Emulator struct {
 	pendingPalette   string
 }
 
-// NewEmulator creates and initializes the emulator components.
-// Call SetBIOS before Start() to use a real BIOS; otherwise HLE mode is used.
-func NewEmulator(rom []byte) (Emulator, error) {
+// NewEmulator creates an empty emulator. Cartridge content is provided
+// afterwards via SetRom before Start; call SetBIOS before Start() to use
+// a real BIOS, otherwise HLE mode is used.
+func NewEmulator() Emulator {
+	return Emulator{}
+}
+
+// SetRom provides cartridge ROM data and builds the emulator components
+// from it. Must be called after NewEmulator and before Start. A nil rom
+// builds the valid BIOS-only state. If the ROM is rejected by the memory
+// map (e.g. oversize), the emulator degrades to BIOS-only rather than
+// failing, since the coreif SetRom contract has no error channel.
+func (e *Emulator) SetRom(rom []byte) {
 	timing := NGPCTiming
 
 	samplesPerFrame := sampleRate / timing.FPS
@@ -67,7 +77,9 @@ func NewEmulator(rom []byte) (Emulator, error) {
 
 	mem, err := NewMemory(rom, psg)
 	if err != nil {
-		return Emulator{}, err
+		// Degrade an invalid cartridge to the spec-supported BIOS-only
+		// state instead of panicking; the nil-cart path cannot error.
+		mem, _ = NewMemory(nil, psg)
 	}
 
 	c := tlcs900h.New(mem)
@@ -82,32 +94,35 @@ func NewEmulator(rom []byte) (Emulator, error) {
 
 	dacBufSize := samplesPerFrame * 2
 
-	return Emulator{
-		cpu:                    c,
-		mem:                    mem,
-		psg:                    psg,
-		k2ge:                   k2ge,
-		cpuCyclesPerScanline:   cpuCyclesPerScanline,
-		z80CyclesPerScanlineFP: z80CyclesPerScanlineFP,
-		timing:                 timing,
-		scanlines:              timing.Scanlines,
-		framebuffer:            framebuffer,
-		audioBuffer:            make([]int16, 0, 2048),
-		dacBufferL:             make([]float32, dacBufSize),
-		dacBufferR:             make([]float32, dacBufSize),
-		dacGain:                0.5,
-		pendingFastBoot:        true,
-		pendingLanguage:        "English",
-		pendingPalette:         "Black & White",
-	}, nil
+	e.cpu = c
+	e.mem = mem
+	e.psg = psg
+	e.k2ge = k2ge
+	e.cpuCyclesPerScanline = cpuCyclesPerScanline
+	e.z80CyclesPerScanlineFP = z80CyclesPerScanlineFP
+	e.timing = timing
+	e.scanlines = timing.Scanlines
+	e.framebuffer = framebuffer
+	e.audioBuffer = make([]int16, 0, 2048)
+	e.dacBufferL = make([]float32, dacBufSize)
+	e.dacBufferR = make([]float32, dacBufSize)
+	e.dacGain = 0.5
+	e.pendingFastBoot = true
+	e.pendingLanguage = "English"
+	e.pendingPalette = "Black & White"
 }
 
-// SetBIOS stores BIOS data to be applied when Start() is called.
-func (e *Emulator) SetBIOS(key string, data []byte) {
+// SetDisc is a no-op; the Neo Geo Pocket Color is cartridge-based.
+func (e *Emulator) SetDisc(disc coreif.DiscReader) {}
+
+// SetBIOS stores BIOS data to be applied when Start() is called. Must be
+// called after SetRom (it injects into the constructed memory map).
+func (e *Emulator) SetBIOS(key string, data []byte) error {
 	if key == "system_bios" {
 		e.mem.SetBIOS(data)
 		e.hasBIOS = true
 	}
+	return nil
 }
 
 // RunFrame executes one frame of emulation.

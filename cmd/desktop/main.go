@@ -25,6 +25,7 @@ func main() {
 		if *firstBoot {
 			options["first_boot"] = "true"
 		}
+		options["fast_boot"] = "false"
 		var biosMap map[string][]byte
 		if *biosPath != "" {
 			data, err := os.ReadFile(*biosPath)

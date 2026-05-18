@@ -23,10 +23,8 @@ func makeTestEmulator(t *testing.T) Emulator {
 	bios[0x0010] = 0xC8
 	bios[0x0011] = 0xFE
 
-	emu, err := NewEmulator(nil)
-	if err != nil {
-		t.Fatalf("makeTestEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(nil)
 	emu.SetBIOS("system_bios", bios)
 	return emu
 }
@@ -105,10 +103,8 @@ func TestNewEmulatorDefaultNVRAMBoot(t *testing.T) {
 
 func TestSetOptionFirstBootHLE(t *testing.T) {
 	// HLE mode: first_boot option should be ignored by Start
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator HLE: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 
 	emu.SetOption("first_boot", "true")
 	emu.Start()
@@ -144,10 +140,8 @@ func makeMinimalMonoCart() []byte {
 }
 
 func TestSetOptionMonoPaletteBW(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalMonoCart())
 
 	emu.SetOption("mono_palette", "Black & White")
 	emu.Start()
@@ -166,10 +160,8 @@ func TestSetOptionMonoPaletteBW(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteBlue(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalMonoCart())
 
 	emu.SetOption("mono_palette", "Blue")
 	emu.Start()
@@ -186,10 +178,8 @@ func TestSetOptionMonoPaletteBlue(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteAllSchemes(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalMonoCart())
 
 	for _, pal := range monoPalettes {
 		emu.SetOption("mono_palette", pal.Name)
@@ -214,10 +204,8 @@ func TestSetOptionMonoPaletteAllSchemes(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteInvalid(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalMonoCart())
 
 	// Apply Black & White via Start
 	emu.SetOption("mono_palette", "Black & White")
@@ -234,10 +222,8 @@ func TestSetOptionMonoPaletteInvalid(t *testing.T) {
 }
 
 func TestSetOptionLanguageEnglish(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 
 	emu.SetOption("language", "English")
 	emu.Start()
@@ -249,10 +235,8 @@ func TestSetOptionLanguageEnglish(t *testing.T) {
 }
 
 func TestSetOptionLanguageJapanese(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 
 	emu.SetOption("language", "Japanese")
 	emu.Start()
@@ -264,10 +248,8 @@ func TestSetOptionLanguageJapanese(t *testing.T) {
 }
 
 func TestSetOptionLanguageChecksum(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 
 	// $6C25=$DC, $6C26-$6C2B=$00, $6F94=$00
 	// English ($6F87=$01): checksum = $01 + $DC = $DD
@@ -307,10 +289,8 @@ func TestSetOptionLanguageRealBIOSFastBoot(t *testing.T) {
 }
 
 func TestSetOptionMonoPaletteChecksum(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalMonoCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalMonoCart())
 
 	// Set language to English and Blue palette
 	// $6F87=$01, $6F94=$03: checksum = $01 + $DC + $03 = $E0
@@ -386,19 +366,15 @@ func TestStartRealBIOSFirstBoot(t *testing.T) {
 
 func TestStartOrderIndependence(t *testing.T) {
 	// Order 1: language then palette
-	emu1, err := NewEmulator(makeMinimalMonoCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu1 := NewEmulator()
+	emu1.SetRom(makeMinimalMonoCart())
 	emu1.SetOption("language", "Japanese")
 	emu1.SetOption("mono_palette", "Blue")
 	emu1.Start()
 
 	// Order 2: palette then language
-	emu2, err := NewEmulator(makeMinimalMonoCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu2 := NewEmulator()
+	emu2.SetRom(makeMinimalMonoCart())
 	emu2.SetOption("mono_palette", "Blue")
 	emu2.SetOption("language", "Japanese")
 	emu2.Start()
@@ -443,10 +419,8 @@ func makeTestEmulatorWithCart(t *testing.T) Emulator {
 	bios[0x0011] = 0xFE
 
 	cart := makeMinimalCart()
-	emu, err := NewEmulator(cart)
-	if err != nil {
-		t.Fatalf("makeTestEmulatorWithCart: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(cart)
 	emu.SetBIOS("system_bios", bios)
 	return emu
 }
@@ -496,10 +470,8 @@ func TestFastBootPrecedenceOverFirstBoot(t *testing.T) {
 }
 
 func TestFastBootIgnoredInHLE(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 	// fast_boot defaults to true, but HLE has no BIOS to skip
 	emu.Start()
 
@@ -511,10 +483,8 @@ func TestFastBootIgnoredInHLE(t *testing.T) {
 }
 
 func TestGetSRAMNoChanges(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 	emu.Start()
 
 	got := emu.GetSRAM()
@@ -534,10 +504,8 @@ func TestGetSetSRAMRoundTrip(t *testing.T) {
 	cart[0x1E] = 0x20
 	cart[0x1F] = 0x00
 
-	emu, err := NewEmulator(cart)
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(cart)
 	emu.Start()
 
 	// Simulate a flash write by directly modifying cart data
@@ -551,10 +519,8 @@ func TestGetSetSRAMRoundTrip(t *testing.T) {
 	}
 
 	// Create a new emulator with the same ROM
-	emu2, err := NewEmulator(cart)
-	if err != nil {
-		t.Fatalf("NewEmulator 2: %v", err)
-	}
+	emu2 := NewEmulator()
+	emu2.SetRom(cart)
 
 	// Load save data
 	emu2.SetSRAM(sram)
@@ -581,10 +547,8 @@ func TestSetSRAMResetsToOrig(t *testing.T) {
 	cart[0x1F] = 0x00
 	cart[0x50] = 0x42
 
-	emu, err := NewEmulator(cart)
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(cart)
 	emu.Start()
 
 	// Modify cart
@@ -604,10 +568,8 @@ func TestReadWriteRegionDecoupled(t *testing.T) {
 	cart[0x1E] = 0x20
 	cart[0x1F] = 0x00
 
-	emu, err := NewEmulator(cart)
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(cart)
 	emu.Start()
 
 	// ReadRegion should return raw cart data (not NGF)
@@ -638,10 +600,8 @@ func TestReadWriteRegionDecoupled(t *testing.T) {
 }
 
 func TestMemoryMapSystemRAMSize(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 
 	regions := emu.MemoryMap()
 	found := false
@@ -661,10 +621,8 @@ func TestMemoryMapSystemRAMSize(t *testing.T) {
 }
 
 func TestReadWriteRegionSystemRAM(t *testing.T) {
-	emu, err := NewEmulator(makeMinimalCart())
-	if err != nil {
-		t.Fatalf("NewEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(makeMinimalCart())
 	emu.Start()
 
 	// Write known values to work RAM and Z80 RAM

@@ -89,12 +89,10 @@ func (f *Factory) SystemInfo() coreif.SystemInfo {
 	}
 }
 
-// CreateEmulator creates a new emulator instance with the given ROM.
-// The emulator starts in HLE mode; call SetBIOS before Start() to use a real BIOS.
-func (f *Factory) CreateEmulator(rom []byte) (coreif.Emulator, error) {
-	e, err := core.NewEmulator(rom)
-	if err != nil {
-		return nil, err
-	}
-	return &e, nil
+// CreateEmulator creates a new emulator instance. Cartridge content is
+// provided afterwards via Emulator.SetRom. The emulator starts in HLE
+// mode; call SetBIOS before Start() to use a real BIOS.
+func (f *Factory) CreateEmulator() coreif.Emulator {
+	e := core.NewEmulator()
+	return &e
 }

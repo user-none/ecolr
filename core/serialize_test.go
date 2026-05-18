@@ -29,10 +29,8 @@ func makeSerializeEmulator(t *testing.T) Emulator {
 		cart[i] = uint8(i)
 	}
 
-	emu, err := NewEmulator(cart)
-	if err != nil {
-		t.Fatalf("makeSerializeEmulator: %v", err)
-	}
+	emu := NewEmulator()
+	emu.SetRom(cart)
 	emu.SetBIOS("system_bios", bios)
 	return emu
 }

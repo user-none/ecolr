@@ -5,7 +5,7 @@ go 1.25.7
 require (
 	github.com/user-none/eblitui-ios v0.6.1
 	github.com/user-none/eblitui/coreif v0.7.0
-	github.com/user-none/eblitui/desktop v0.4.3
+	github.com/user-none/eblitui/desktop v0.4.4
 	github.com/user-none/go-chip-sn76489 v0.0.0-20260309231832-eec93e7fc417
 	github.com/user-none/go-chip-z80 v0.0.0-20260315161243-6c949bf925bb
 )
